@@ -164,7 +164,7 @@ async function generateTemplate(players, doc) {
     PSNs.push(`${x.psn.replace('_', '\\_')} [${mmr}]`);
   }
 
-  return [PSNs, `https://gb2.hlorenzi.com/table?data=${encodedData}`, template];
+  return [PSNs, `https://gb.hlorenzi.com/table?data=${encodedData}`, template];
 }
 
 module.exports = generateTemplate;

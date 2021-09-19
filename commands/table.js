@@ -2,7 +2,7 @@ const drawTable = require('../utils/drawTable');
 
 module.exports = {
   name: 'table',
-  description: 'Generate score table. https://gb2.hlorenzi.com',
+  description: 'Generate score table. https://gb.hlorenzi.com',
   cooldown: 10,
   guildOnly: true,
   aliases: ['t'],

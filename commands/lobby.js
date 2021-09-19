@@ -810,7 +810,7 @@ async function setupTournamentRound(doc, roomChannel) {
 
       embed.fields.push({
         name: 'Score Template',
-        value: `\`\`\`${l.template}\`\`\`\n[Open template on gb2.hlorenzi.com](${l.templateUrl})`,
+        value: `\`\`\`${l.template}\`\`\`\n[Open template on gb.hlorenzi.com](${l.templateUrl})`,
       });
 
       const pings = doc.players.map((m) => `<@!${m}>`).join(', ');
@@ -1004,7 +1004,7 @@ ${playersText}`,
                       color: doc.getColor(),
                       title: 'Score Template',
                       description: `\`\`\`${template}\`\`\`
-  [Open template on gb2.hlorenzi.com](${templateUrl})`,
+  [Open template on gb.hlorenzi.com](${templateUrl})`,
                     },
                   }).then(() => {
                     if (doc.isBattle()) {

@@ -52,7 +52,7 @@ Team2: p1,p2,p3
 
     data = data.join('\n\n');
     const encodedData = encodeURI(data);
-    const url = `https://gb2.hlorenzi.com/table?data=${encodedData}`;
+    const url = `https://gb.hlorenzi.com/table?data=${encodedData}`;
 
     if (url.length > 1700) {
       return message.channel.warn('The template is too long.');
@@ -64,7 +64,7 @@ Team2: p1,p2,p3
           title: 'Table Generator',
           description: `You can use command \`!table\` and template to generate tables right in Discord.
 \`\`\`${data}\`\`\`
-[Open template on gb2.hlorenzi.com](${url})`,
+[Open template on gb.hlorenzi.com](${url})`,
           color: config.default_embed_color,
           timestamp: new Date(),
           image: { url: `attachment://${attachment.name}` },
