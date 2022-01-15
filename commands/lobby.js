@@ -1541,7 +1541,7 @@ module.exports = {
 
           lobby.reservedTeam = reservedTeam;
 
-          let anonymous = true;
+          let anonymous = false;
           if (custom.includes(CUSTOM_OPTION_ANONYMOUS)) {
             try {
               const buttonId = await message.channel.awaitButtonChoice(
