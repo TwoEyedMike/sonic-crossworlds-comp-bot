@@ -156,8 +156,13 @@ async function getPlayerInfo(playerId, doc) {
     psn = psn.replace('_', '\\_');
   }
 
+  let { rankedName } = p;
+  if (rankedName) {
+    rankedName = rankedName.replace('_', '\\_');
+  }
+
   if (!doc.anonymous || doc.started) {
-    return [tag, psn, rankValue];
+    return [tag, psn, rankValue, rankedName];
   }
 
   const region = regions.find((r) => r.key === p.region);
@@ -168,6 +173,7 @@ async function getPlayerInfo(playerId, doc) {
     `${region.emote} ${name} - ${region.name} ${natIcon}`,
     '???',
     doc.getDefaultRank(),
+    '???',
   ];
 }
 
@@ -232,14 +238,14 @@ async function getEmbed(doc, players, tracks, roomChannel) {
     const psns = [];
 
     for (const playerId of players) {
-      const [tag, psn, rank] = await getPlayerInfo(playerId, doc);
+      const [tag, psn, rank, ranked_name] = await getPlayerInfo(playerId, doc);
 
       playersOut.push(tag);
 
       if (doc.ranked) {
-        psns.push(`${psn} [${rank}]`);
+        psns.push(`${ranked_name} [${rank}]`);
       } else {
-        psns.push(psn);
+        psns.push(ranked_name);
       }
 
       playersInfo[playerId] = { tag, psn, rank };
@@ -309,7 +315,7 @@ async function getEmbed(doc, players, tracks, roomChannel) {
   };
 
   const psnsField = {
-    name: `:credit_card: PSN IDs${doc.ranked ? ' & Ranks' : ''}`,
+    name: `:credit_card: Ranked Names${doc.ranked ? ' & Ranks' : ''}`,
     value: psnAndRanks,
     inline: true,
   };
