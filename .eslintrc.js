@@ -1,7 +1,7 @@
 module.exports = {
   env: {
     browser: false,
-    es6: true
+    es6: true,
   },
   extends: [
     'airbnb-base',
@@ -15,13 +15,13 @@ module.exports = {
     sourceType: 'module',
     ecmaFeatures: {
       classes: true,
-    }
+    },
   },
   rules: {
-    "prefer-destructuring": ["error", {"object": true, "array": false}],
-    "no-underscore-dangle": "off",
-    "no-param-reassign": "off",
-    "no-await-in-loop": "off",
-    "no-restricted-syntax": "off",
+    'prefer-destructuring': ['error', { object: true, array: false }],
+    'no-underscore-dangle': 'off',
+    'no-param-reassign': 'off',
+    'no-await-in-loop': 'off',
+    'no-restricted-syntax': 'off',
   },
 };
