@@ -87,7 +87,7 @@ module.exports = {
     const firstTrophy = trophiesResponse.data.list.sort((a, b) => a.timestamp - b.timestamp).shift();
     playingSince = firstTrophy.timestamp;
 
-    playtime = parseInt(String(gameContainerElement.data('hours')), 10);
+    playtime = parseInt(gameContainerElement.find('span.hours').text().replace('h', ''), 10);
     lastPlayed = gameContainerElement.find('div.lastplayed').text();
 
     const trophiesElement = gameContainerElement.find('div.game-progress > div:first-child > div');
@@ -107,7 +107,7 @@ module.exports = {
     const averagePlaytime = (playtime / daysPlayed).toFixed(2);
 
     const gameOutput = [
-      `**Time played**: ${Intl.NumberFormat('de-DE').format(playtime)} hours`,
+      `**Time played**: ${Intl.NumberFormat('en').format(playtime)} hours`,
       `**Last played**: ${lastPlayed}`,
       `**Playing since**: ${moment.unix(playingSince).format('MMM D, YYYY')}`,
       `**Average playtime**: ${averagePlaytime} hours daily`,
