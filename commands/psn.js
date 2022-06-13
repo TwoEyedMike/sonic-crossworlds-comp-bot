@@ -45,8 +45,7 @@ module.exports = {
     totalPlayTime = headerElement
       .find('span[data-tippy-content="Cumulative gameplay hours"]')
       .text()
-      .trim()
-      .replace(',', '.');
+      .trim();
 
     const countryElement = headerElement.find('span.country-ranking > img');
     if (countryElement.length <= 0) {
@@ -88,7 +87,7 @@ module.exports = {
     const firstTrophy = trophiesResponse.data.list.sort((a, b) => a.timestamp - b.timestamp).shift();
     playingSince = firstTrophy.timestamp;
 
-    playtime = parseInt(String(gameContainerElement.data('playtime')), 10);
+    playtime = parseInt(String(gameContainerElement.data('hours')), 10);
     lastPlayed = gameContainerElement.find('div.lastplayed').text();
 
     const trophiesElement = gameContainerElement.find('div.game-progress > div:first-child > div');
