@@ -1192,9 +1192,16 @@ function deleteLobby(doc, message, sendMessage) {
   }
 
   const guild = client.guilds.cache.get(doc.guild);
+  let lobbiesChannel;
 
-  // eslint-disable-next-line max-len
-  const lobbiesChannel = guild.channels.cache.find((c) => c.name.toLowerCase() === config.channels.ranked_lobbies_channel.toLowerCase());
+  /// check to allow both unranked and ranked to be deleted
+  if (doc.ranked) {
+    // eslint-disable-next-line max-len
+    lobbiesChannel = guild.channels.cache.find((c) => c.name.toLowerCase() === config.channels.ranked_lobbies_channel.toLowerCase());
+  } else {
+    // eslint-disable-next-line max-len
+    lobbiesChannel = guild.channels.cache.find((c) => c.name.toLowerCase() === config.channels.unranked_lobbies_channel.toLowerCase());
+  }
   const promiseMessageDelete = lobbiesChannel.messages.fetch(doc.message).then((m) => m.delete());
 
   let endMessage = 'Lobby ended.';
@@ -2619,9 +2626,16 @@ const checkOldLobbies = () => {
 
         const minutes = diffMinutes(new Date(), doc.date);
 
-        if (doc.players.length <= 0 && minutes >= 5) {
-          deleteLobby(doc);
-          return notificationChannel.info(`Your lobby \`${doc.id}\` has been deleted because it was empty for more than 5 minutes.`, [doc.creator]);
+        if (doc.ranked) {
+          if (doc.players.length <= 0 && minutes >= 5) {
+            deleteLobby(doc);
+            return notificationChannel.info(`Your lobby \`${doc.id}\` has been deleted because it was empty for more than 5 minutes.`, [doc.creator]);
+          }
+        } else if (!doc.ranked) {
+          if (doc.players.length <= 0 && minutes >= 60) {
+            deleteLobby(doc);
+            return notificationChannel.info(`Your lobby \`${doc.id}\` has been deleted because it was empty for more than 60 minutes.`, [doc.creator]);
+          }
         }
 
         const remindMinutes = [55];
