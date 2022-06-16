@@ -68,12 +68,14 @@ const SURVIVAL_STYLES = [
   'Mixed',
   'Itemless',
 ];
+
 const LEADERBOARD_URLS = {
-	'solos': 'tzfvQv',
-	'itemless': 'Nm1SGc',
-	'teams': '3VRoy4',
-	'battle': 'mBwkl_',
+  'solos': 'tzfvQv',
+  'itemless': 'Nm1SGc',
+  'teams': '3VRoy4',
+  'battle': 'mBwkl_',
 };
+
 const LEADERBOARDS = {
   [RACE_ITEMS_FFA]: LEADERBOARD_URLS.solos,
   [RACE_ITEMS_DUOS]: LEADERBOARD_URLS.teams,
@@ -94,6 +96,7 @@ const LEADERBOARDS = {
   [INSTA_3V3]: LEADERBOARD_URLS.solos,
   [INSTA_4V4]: LEADERBOARD_URLS.solos,
 };
+
 const TRACK_OPTION_RNG = 'random';
 const TRACK_OPTION_POOLS = 'pools';
 const TRACK_OPTION_DRAFT = 'draft';
@@ -150,6 +153,7 @@ module.exports.INSTA_3V3 = INSTA_3V3;
 module.exports.INSTA_4V4 = INSTA_4V4;
 module.exports.SURVIVAL_STYLES = SURVIVAL_STYLES;
 module.exports.LEADERBOARDS = LEADERBOARDS;
+module.exports.LEADERBOARD_URLS = LEADERBOARD_URLS;
 module.exports.TRACK_OPTION_RNG = TRACK_OPTION_RNG;
 module.exports.TRACK_OPTION_POOLS = TRACK_OPTION_POOLS;
 module.exports.TRACK_OPTION_DRAFT = TRACK_OPTION_DRAFT;

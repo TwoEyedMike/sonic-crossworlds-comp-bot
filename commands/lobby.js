@@ -1,4 +1,3 @@
-const axios = require('axios');
 const moment = require('moment');
 const { CronJob } = require('cron');
 const AsyncLock = require('async-lock');
@@ -50,6 +49,7 @@ const generateBattleModes = require('../utils/generateBattleModes');
 const generateTemplate = require('../utils/generateTemplate');
 const generateTracks = require('../utils/generateTracks');
 const getConfigValue = require('../utils/getConfigValue');
+const getLorenziBoardData = require('../utils/getLorenziBoardData');
 
 const {
   optimalPartition3,
@@ -2784,20 +2784,8 @@ client.on('ready', () => {
   });
 });
 
-function getBoardRequestData(teamId) {
-  return `{
-  team(teamId: "${teamId}")
-    {
-      id, kind, name, tag, iconSrc, flag, gamePreset, ownerIds, updaterIds, createDate, modifyDate, activityDate, wins, draws, losses, baseWins, baseDraws, baseLosses, ratingScheme, ratingMin, tiers { name, lowerBound, color }, ratingElo { initial, scalingFactors }, ratingMk8dxMmr { initial, scalingFactors, baselines }, matchCount, playerCount,
-      players { name, ranking, maxRanking, minRanking, wins, losses, playedMatchCount, firstActivityDate, lastActivityDate, rating, ratingGain, maxRating, minRating, maxRatingGain, maxRatingLoss, points, maxPointsGain }
-    }
-}`;
-}
-
 // update cached ranks
 async function getRanks(options) {
-  const url = 'https://gb.hlorenzi.com/api/v1/graphql';
-
   const ranks = {};
 
   // eslint-disable-next-line guard-for-in
@@ -2805,7 +2793,7 @@ async function getRanks(options) {
     const id = LEADERBOARDS[key];
 
     if (id !== null) {
-      const response = await axios.post(url, getBoardRequestData(id), { headers: { 'Content-Type': 'text/plain' } });
+      const response = await getLorenziBoardData(id)
 
       if (response.data.data.team !== null) {
         const { players } = response.data.data.team;
