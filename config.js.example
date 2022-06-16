@@ -10,6 +10,7 @@ module.exports = {
   verification_dm: 'Your account has been verified. Enjoy tournaments, ranked and other activities!',
   wc_signup_message: 'Thank you for signing up for the World Cup!',
   draft_tool_url: '',
+  lorenzi_api_url: 'https://gb.hlorenzi.com/api/v1/graphql',
   ranked_option_emote: '🏅',
   default_embed_color: 5392267,
   lobby_creation_cooldown: 5,
