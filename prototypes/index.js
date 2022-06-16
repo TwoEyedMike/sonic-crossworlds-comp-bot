@@ -22,6 +22,7 @@ require('./text_channel/count_signups');
 require('./text_channel/create_pagination');
 require('./text_channel/fetch_messages');
 require('./text_channel/is_stream_channel');
+require('./text_channel/offer_csv_download');
 require('./text_channel/parse_signups');
 require('./text_channel/send_pageable_content');
 require('./text_channel/send_without_ping');
