@@ -1,5 +1,6 @@
 const { LEADERBOARD_URLS } = require('../db/models/lobby');
 const { Player } = require('../db/models/player');
+const dateToDateTime = require('../utils/dateToDateTime');
 const getLorenziBoardData = require('../utils/getLorenziBoardData');
 
 module.exports = {
@@ -8,7 +9,7 @@ module.exports = {
   guildOnly: true,
   permissions: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
   aliases: ['export_ranks', 'leaderboards'],
-  async execute(message) {
+  execute(message) {
     const tableHeadRow = [
       'Discord ID',
       'PSN ID',
@@ -23,7 +24,7 @@ module.exports = {
       'Max MMR',
       'Min MMR',
       'Max MMR gain',
-      'Min MMR gain',
+      'Max MMR loss',
       'Total points',
       'Max points gain',
       'Last played',
@@ -33,7 +34,7 @@ module.exports = {
     Object.keys(LEADERBOARD_URLS).forEach((mode) => {
       const teamId = LEADERBOARD_URLS[mode];
 
-      getLorenziBoardData(teamId).then(async (leaderboard) => {
+      getLorenziBoardData(teamId).then((leaderboard) => {
         if (leaderboard.data.data.team !== null) {
           /**
            * each player is an object that looks something like this:
@@ -57,55 +58,54 @@ module.exports = {
            * maxPointsGain: 34
            */
           const { players } = leaderboard.data.data.team;
-          const playerRows = [];
 
+          const playerPromises = [];
           for (i in players) {
-            rankedPlayer = players[i];
-            if (!rankedPlayer || Number.isNaN(rankedPlayer.rating)) {
-              continue;
-            }
-
-            discordId = '-';
-            psn = '-';
-
-            serverPlayer = await Player.findOne({ rankedName: rankedPlayer.name });
-            if (serverPlayer) {
-              discordId = serverPlayer.discordId;
-              psn = serverPlayer.psn;
-            }
-
-            playerRows.push([
-              String(discordId),
-              psn,
-              rankedPlayer.ranking + 1,
-              rankedPlayer.name,
-              parseInt(rankedPlayer.rating, 10),
-              rankedPlayer.playedMatchCount,
-              rankedPlayer.wins,
-              rankedPlayer.losses,
-              rankedPlayer.maxRanking,
-              rankedPlayer.minRanking,
-              parseInt(rankedPlayer.maxRating, 10),
-              parseInt(rankedPlayer.minRating, 10),
-              rankedPlayer.maxRatingGain,
-              rankedPlayer.maxRatingLoss,
-              rankedPlayer.points,
-              rankedPlayer.maxPointsGain,
-              rankedPlayer.firstActivityDate,
-              rankedPlayer.lastActivityDate
-            ]);
+            promise = Player.findOne({ rankedName: players[i].name });
+            playerPromises.push(promise);
           }
 
-          fileContent = tableHeadRow.join(';') + '\n';
-          playerRows.forEach((playerRow) => {
-            fileContent += playerRow.join(';') + '\n';
-          })
+          Promise.all(playerPromises).then((serverPlayers) => {
+            const playerRows = [];
 
-          message.channel.send({
-            files: [{
-              attachment: Buffer.from(fileContent, 'utf-8'),
-              name: `${mode}.csv`,
-            }]
+            for (i in players) {
+              const rankedPlayer = players[i];
+              const serverPlayer = serverPlayers.find((s) => s && s.rankedName === rankedPlayer.name);
+
+              let discordId = '-';
+              let psn = '-';
+
+              if (serverPlayer) {
+                discordId = serverPlayer.discordId;
+                psn = serverPlayer.psn;
+              }
+
+              const lastPlayed = new Date(rankedPlayer.lastActivityDate);
+              const firstPlayed = new Date(rankedPlayer.firstActivityDate);
+
+              playerRows.push([
+                String(discordId),
+                psn,
+                rankedPlayer.ranking + 1,
+                rankedPlayer.name,
+                parseInt(rankedPlayer.rating, 10),
+                rankedPlayer.playedMatchCount,
+                rankedPlayer.wins,
+                rankedPlayer.losses,
+                rankedPlayer.maxRanking,
+                rankedPlayer.minRanking,
+                parseInt(rankedPlayer.maxRating, 10),
+                parseInt(rankedPlayer.minRating, 10),
+                rankedPlayer.maxRatingGain,
+                rankedPlayer.maxRatingLoss,
+                rankedPlayer.points,
+                rankedPlayer.maxPointsGain,
+                dateToDateTime(lastPlayed),
+                dateToDateTime(firstPlayed)
+              ]);
+            }
+
+            message.channel.offerCsvDownload(tableHeadRow, playerRows, `${mode}.csv`);
           });
         }
       });
