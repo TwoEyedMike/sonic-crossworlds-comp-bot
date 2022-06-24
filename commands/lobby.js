@@ -2793,10 +2793,11 @@ async function getRanks(options) {
     const id = LEADERBOARDS[key];
 
     if (id !== null) {
-      const response = await getLorenziBoardData(id)
+      const response = await getLorenziBoardData(id);
 
       if (response.data.data.team !== null) {
         const { players } = response.data.data.team;
+
         players.forEach((p) => {
           const { name } = p;
           if (!(name in ranks)) {
