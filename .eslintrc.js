@@ -23,5 +23,6 @@ module.exports = {
     'no-param-reassign': 'off',
     'no-await-in-loop': 'off',
     'no-restricted-syntax': 'off',
+    'max-len': '200',
   },
 };

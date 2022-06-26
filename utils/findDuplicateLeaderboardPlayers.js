@@ -56,7 +56,7 @@ const getLorenziBoardData = require('../utils/getLorenziBoardData');
               duplicatePlayers.push({
                 name1 : p1.name,
                 name2 : p2.name,
-                discordId : serverPlayer1?.discordId || serverPlayer2?.discordId || null,
+                discordId : serverPlayer1.discordId || serverPlayer2.discordId || null,
                 leaderboard: keys[mode]
               });
             }
