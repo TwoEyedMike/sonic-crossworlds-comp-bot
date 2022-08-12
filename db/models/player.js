@@ -70,6 +70,28 @@ Player.methods = {
 
     return icon;
   },
+  getConsoleIcon() {
+    // eslint-disable-next-line global-require
+    const { client } = require('../../bot');
+
+    let icon;
+
+    if (!this.consoles) {
+      icon = '';
+    } else {
+      const cons = Object.values(this.consoles).includes('PS5');
+      if(cons)
+      {
+        icon = client.getEmote('PS5', '1007511706588696686');
+      }
+      else
+      {
+        icon = client.getEmote('PS4', '1007511742294786089');
+      }
+    }
+
+    return icon;
+  },
 };
 
 module.exports.Player = model('player', Player);

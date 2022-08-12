@@ -151,6 +151,11 @@ async function getPlayerInfo(playerId, doc) {
     tag += ` ${natIcon}`;
   }
 
+  const consoleIcon = p.getConsoleIcon();
+  if (consoleIcon) {
+    tag += ` ${consoleIcon}`;
+  }
+
   let { psn } = p;
   if (psn) {
     psn = psn.replace('_', '\\_');
