@@ -29,6 +29,14 @@ module.exports = {
       return message.channel.warn('You okay, bro?');
     }
 
+    if(PSN.length > 16) {
+      return message.channel.warn('Too many characters in name.');
+    }
+
+    if(!/^[a-zA-Z0-9-_]+$/.test(PSN)){
+      return message.channel.warn('Invalid characters in name.');
+    }
+
     // eslint-disable-next-line consistent-return
     message.guild.members.fetch(user).then((member) => {
       const discordId = member.user.id;
