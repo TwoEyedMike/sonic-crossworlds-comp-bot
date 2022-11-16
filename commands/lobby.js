@@ -147,12 +147,12 @@ async function getPlayerInfo(playerId, doc) {
   let tag = `${flag} <@${playerId}>`;
 
   const natIcon = p.getNatIcon();
-  if (natIcon) {
+  if (natIcon && !doc.isTournament()) {
     tag += ` ${natIcon}`;
   }
 
   const consoleIcon = p.getConsoleIcon();
-  if (consoleIcon) {
+  if (consoleIcon && !doc.isTournament()) {
     tag += ` ${consoleIcon}`;
   }
 
