@@ -889,6 +889,23 @@ function startLobby(docId) {
       generateTracks(doc).then((tracks) => {
         findRoom(doc).then((room) => {
           findRoomChannel(doc, room.number).then(async (roomChannel) => {
+            // remove all players from their other lobbies
+            for (p in doc.players) {
+                lobbies = await Lobby.find({ 
+                    _id: { $not: { $eq: doc.id } }, 
+                    players: doc.players[p]
+                })
+
+                for (l in lobbies) {
+                    const reaction = {
+                        message: message,
+                        users: null,
+                    };
+
+                    await mogi(reaction, doc.players[p], true);
+                }
+            }
+
             if (doc.privateChannel) {
               await createChannelOverwrites(doc, roomChannel);
             }
@@ -2140,13 +2157,6 @@ async function mogi(reaction, user, removed = false) {
           }
 
           // eslint-disable-next-line max-len
-          const repeatLobby = await Lobby.findOne({ guild: guild.id, players: user.id, _id: { $ne: doc._id } });
-
-          if (repeatLobby) {
-            errors.push('You cannot be in 2 lobbies at the same time.');
-          }
-
-          // eslint-disable-next-line max-len
           if (doc.ranked && !doc.locked.$isEmpty() && doc.isSolos() && player.rankedName) {
             const playerRank = await Rank.findOne({ name: player.rankedName });
 
@@ -2205,16 +2215,6 @@ async function mogi(reaction, user, removed = false) {
                 players = players.filter((p) => p !== user.id && p !== savedPartner);
                 teamList = teamList.filter((p) => !(Array.isArray(p) && p.includes(user.id)));
               } else {
-                const repeatLobbyPartner = await Lobby.findOne({
-                  guild: guild.id,
-                  players: savedPartner,
-                  _id: { $ne: doc._id },
-                });
-
-                if (repeatLobbyPartner) {
-                  errors.push('Your partner is in another lobby.');
-                }
-
                 if (doc.ranked) {
                   // eslint-disable-next-line max-len
                   const partnerBanned = await RankedBan.findOne({ discordId: savedPartner, guildId: guild.id });
@@ -2337,16 +2337,6 @@ async function mogi(reaction, user, removed = false) {
                 players = players.filter((p) => !teamPlayers.includes(p));
                 teamList = teamList.filter((p) => !(Array.isArray(p) && p.includes(user.id)));
               } else {
-                const repeatLobbyTeam = await Lobby.findOne({
-                  guild: guild.id,
-                  players: { $in: teamPlayers },
-                  _id: { $ne: doc._id },
-                });
-
-                if (repeatLobbyTeam) {
-                  errors.push('One of your teammates is in another lobby.');
-                }
-
                 if (doc.ranked) {
                   // eslint-disable-next-line max-len
                   const teammateBanned = await RankedBan.findOne({ discordId: teamPlayers, guildId: guild.id });
