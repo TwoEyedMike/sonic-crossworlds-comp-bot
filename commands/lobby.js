@@ -891,14 +891,19 @@ function startLobby(docId) {
           findRoomChannel(doc, room.number).then(async (roomChannel) => {
             // remove all players from their other lobbies
             for (p in doc.players) {
-                lobbies = await Lobby.find({ 
+                playerLobbies = await Lobby.find({ 
                     _id: { $not: { $eq: doc.id } }, 
                     players: doc.players[p]
-                })
+                });
 
-                for (l in lobbies) {
+                for (l in playerLobbies) {
+                    lobbyMessage = await client.guilds.cache
+                        .get(playerLobbies[l].guild).channels.cache
+                        .get(playerLobbies[l].channel).messages
+                        .fetch(playerLobbies[l].message);
+
                     const reaction = {
-                        message: message,
+                        message: lobbyMessage,
                         users: null,
                     };
 
