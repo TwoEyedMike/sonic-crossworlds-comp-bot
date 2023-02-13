@@ -892,7 +892,7 @@ function startLobby(docId) {
             // remove all players from their other lobbies
             for (p in doc.players) {
                 playerLobbies = await Lobby.find({ 
-                    _id: { $not: { $eq: doc.id } }, 
+                    _id: { $ne: doc._id }, 
                     players: doc.players[p]
                 });
 
