@@ -2127,18 +2127,21 @@ async function mogi(reaction, user, removed = false) {
         if (!removed) {
           const member = await guild.members.fetch(user.id);
           if (!member) return;
+          
+          if (doc.ranked) {
+            const banned = await RankedBan.findOne({ discordId: member.id, guildId: guild.id });
 
-          const banned = await RankedBan.findOne({ discordId: member.id, guildId: guild.id });
-          if (banned && doc.ranked) {
-            // eslint-disable-next-line max-len
-            const lobbiesChannel = guild.channels.cache.find((c) => c.name === config.channels.ranked_lobbies_channel);
-            await lobbiesChannel.createOverwrite(user, { VIEW_CHANNEL: false });
-            errors.push('You are banned.');
+            if (banned) {
+                // eslint-disable-next-line max-len
+                const lobbiesChannel = guild.channels.cache.find((c) => c.name === config.channels.ranked_lobbies_channel);
+                await lobbiesChannel.createOverwrite(user, { VIEW_CHANNEL: false });
+                errors.push('You cannot join ranked lobbies while you are banned from playing ranked.');
+            }
           }
 
           // eslint-disable-next-line max-len
           if (member.isMuted()) {
-            errors.push('You are muted.');
+            errors.push('You cannot join matchmaking lobbies when you are muted.');
           }
 
           const player = await Player.findOne({ discordId: user.id });
@@ -2234,7 +2237,7 @@ async function mogi(reaction, user, removed = false) {
                   const partnerBanned = await RankedBan.findOne({ discordId: savedPartner, guildId: guild.id });
                   if (partnerBanned) {
                     userSavedDuo.delete();
-                    errors.push('Your partner is banned. The duo has been deleted.');
+                    errors.push('You cannot join a duo lobby when you partner is banned from playing ranked. The duo has been deleted.');
                   }
                 }
 
@@ -2357,7 +2360,7 @@ async function mogi(reaction, user, removed = false) {
 
                   if (teammateBanned) {
                     team.delete();
-                    errors.push('One of your teammates is banned. The team has been deleted.');
+                    errors.push('You cannot join a team lobby when one of your teammates is banned from playing ranked. The team has been deleted.');
                   }
                 }
 
