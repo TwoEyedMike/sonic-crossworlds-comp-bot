@@ -50,6 +50,7 @@ const generateTemplate = require('../utils/generateTemplate');
 const generateTracks = require('../utils/generateTracks');
 const getConfigValue = require('../utils/getConfigValue');
 const getLorenziBoardData = require('../utils/getLorenziBoardData');
+const shuffleArray = require('../utils/shuffleArray');
 
 const {
   optimalPartition3,
@@ -770,7 +771,7 @@ async function setupTournamentRound(doc, roomChannel) {
 
   if (doc.isSolos()) {
     const lobbyCount = doc.players.length / doc.getDefaultPlayerCount();
-    const shuffledPlayers = doc.players.shuffle();
+    const shuffledPlayers = shuffleArray(doc.players);
     const lobbyData = [];
 
     // eslint-disable-next-line no-plusplus
@@ -891,23 +892,31 @@ function startLobby(docId) {
           findRoomChannel(doc, room.number).then(async (roomChannel) => {
             // remove all players from their other lobbies
             for (p in doc.players) {
-                playerLobbies = await Lobby.find({ 
+                const playerLobbies = await Lobby.find({ 
                     _id: { $ne: doc._id }, 
                     players: doc.players[p]
                 });
 
                 for (l in playerLobbies) {
-                    lobbyMessage = await client.guilds.cache
+                    console.log(l);
+                    console.log(playerLobbies[l]);
+
+                    let lobbyMessage = await client.guilds.cache
                         .get(playerLobbies[l].guild).channels.cache
                         .get(playerLobbies[l].channel).messages
                         .fetch(playerLobbies[l].message);
 
-                    const reaction = {
+                    let reaction = {
                         message: lobbyMessage,
                         users: null,
                     };
 
-                    await mogi(reaction, doc.players[p], true);
+                    let user = client.users.cache.get(doc.players[p]);
+                    if (!user) {
+                        continue;
+                    }
+
+                    await mogi(reaction, user, true);
                 }
             }
 

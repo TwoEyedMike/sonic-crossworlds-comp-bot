@@ -1,3 +1,5 @@
+const shuffleArray = require('./shuffleArray');
+
 /**
  * Removes banned tracks from the track pool
  * @param pool
@@ -86,7 +88,7 @@ async function generateTracks(doc) {
     return m;
   });
 
-  return maps.shuffle();
+  return shuffleArray(maps);
 }
 
 module.exports = generateTracks;

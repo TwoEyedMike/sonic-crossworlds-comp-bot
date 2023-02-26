@@ -1,6 +1,4 @@
 require('./activity/is_ctr_stream');
-require('./array/shuffle');
-require('./array/random');
 require('./guild/find_member');
 require('./guild/log');
 require('./guild_member/has_role');

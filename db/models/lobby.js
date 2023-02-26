@@ -9,6 +9,8 @@ const { trackOptions } = require('../track_options');
 
 const createDraft = require('../../utils/createDraft');
 const createDraftv2 = require('../../utils/createDraftv2');
+const getRandomArrayElement = require('../../utils/getRandomArrayElement');
+
 const {
   TYPE_FFA,
   TYPE_DUOS,
@@ -1079,13 +1081,13 @@ Lobby.methods = {
     if (this.isFFA()) {
       playersToFetch.push(this.players);
     } else if (this.isDuos()) {
-      playersToFetch.push(this.teamList[0].random());
-      playersToFetch.push(this.teamList[1].random());
-      playersToFetch.push(this.teamList[2].random());
-      playersToFetch.push(this.teamList[3].random());
+      playersToFetch.push(getRandomArrayElement(this.teamList[0]));
+      playersToFetch.push(getRandomArrayElement(this.teamList[1]));
+      playersToFetch.push(getRandomArrayElement(this.teamList[2]));
+      playersToFetch.push(getRandomArrayElement(this.teamList[3]));
     } else if (this.isWar()) {
-      playersToFetch.push(this.teamList[0].random());
-      playersToFetch.push(this.teamList[1].random());
+      playersToFetch.push(getRandomArrayElement(this.teamList[0]));
+      playersToFetch.push(getRandomArrayElement(this.teamList[1]));
     }
 
     playersToFetch.forEach((p) => {
