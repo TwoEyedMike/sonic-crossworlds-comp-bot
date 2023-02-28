@@ -17,6 +17,6 @@ module.exports = {
       }
     ],
     template: `Console: PS4 / Xbox / Switch
-Gamer Tag: ctr_tourney_bot / ctr_tourney_bot / SW-0000-0000-0000
+Gamer Tag: ctr_tourney_bot
 Time Zone: America / Europe / Asia`,
   };

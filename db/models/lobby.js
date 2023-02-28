@@ -392,6 +392,64 @@ Lobby.methods = {
 
     return 1;
   },
+  getAvailableTeamSizes() {
+    const full = [0, 0];
+
+    /**
+     * This code will only work for wars because it's made for "solo queue with friends"
+     * By nature this will only work in lobbies where you have more than 1 teammate
+     */
+    if (!this.is3v3() && !this.is4v4()) {
+      return full;
+    }
+
+    let availableTeamSizes = [this.getTeamSize(), this.getTeamSize()]
+
+    for (team in this.teamList) {
+      const teamSize = teamList[team].length;
+
+      if (availableTeamSizes[0] >= teamSize) {
+        availableTeamSizes[0] = availableTeamSizes[0] - teamSize;
+      } else {
+        if (availableTeamSizes[1] >= teamSize) {
+          availableTeamSizes[1] = availableTeamSizes[1] - teamSize;
+        } else {
+          console.log('Encountered an invalid team constellation.');
+          return full;
+        }
+      }
+    }
+
+    return availableTeamSizes;
+  },
+  hasPatchworkTeams() {
+    if (!this.is3v3() && !this.is4v4()) {
+      return false
+    }
+
+    /*
+     * If all the players in the lobby are in the solo queue then
+     * we don't have a patchwork lobby
+     */
+    if (this.getSoloPlayers().length == this.players.length) {
+      return false;
+    }
+
+    let hasPatchworkTeams = false;
+
+    /*
+     * If any team's size is below the usual then we obviously
+     * have patchwork teams
+     */
+    for (team in this.teamList) {
+      if (teamList[team].length < this.getTeamSize()) {
+        hasPatchworkTeams = true;
+        break;
+      }
+    }
+
+    return hasPatchworkTeams;
+  },
   getMinimumPlayerCount() {
     let minimumPlayers;
 

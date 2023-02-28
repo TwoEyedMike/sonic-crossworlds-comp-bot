@@ -45,6 +45,7 @@ const { Room } = require('../db/models/room');
 const { Sequence } = require('../db/models/sequence');
 const { Team } = require('../db/models/team');
 const { client } = require('../bot');
+const compareArrays = require('../utils/compareArrays');
 const generateBattleModes = require('../utils/generateBattleModes');
 const generateTemplate = require('../utils/generateTemplate');
 const generateTracks = require('../utils/generateTracks');
@@ -67,6 +68,7 @@ const { lobbyTypes } = require('../db/lobby_types');
 const { regions } = require('../db/regions');
 const { rulesets } = require('../db/rulesets');
 const { trackOptions } = require('../db/track_options');
+const getRandomArrayElement = require('../utils/getRandomArrayElement');
 
 const lock = new AsyncLock();
 
@@ -281,6 +283,14 @@ async function getEmbed(doc, players, tracks, roomChannel) {
         playersText += `**Team ${i + 1} (Rating: ${Math.floor(mmrSum / team.length)})**\n`;
       } else {
         playersText += `**Team ${i + 1}**\n`;
+      }
+
+      /* Fill the remaining spots with "Open" spots */
+      if (team.length < doc.getTeamSize()) {
+        for (let i = (team.length + 1); i <= doc.getTeamSize(); i++) {
+          team.push(i);
+          playersInfo[i] = { tag: '*Open*', psn: '-', rank: '-' };
+        }
       }
 
       team.forEach((player, x) => {
@@ -623,11 +633,11 @@ async function getPlayersText(doc) {
 /**
  * Returns an array of player ranks for a lobby
  * @param doc
- * @param players
  * @returns {Promise<*[]>}
  */
-async function getPlayerRanks(doc, players) {
+async function getPlayerRanks(doc) {
   const playerRanks = [];
+  const players = doc.getSoloPlayers();
 
   for (const p of players) {
     const [, , rank] = await getPlayerInfo(p, doc);
@@ -696,13 +706,12 @@ function sendBattleModeSettings(doc, roomChannel, modes) {
 /**
  * Creates balanced teams
  * @param doc
- * @param soloPlayers
- * @returns {Promise<*[]>}
+ * @returns Promise<*[]>
  */
-async function createBalancedTeams(doc, soloPlayers) {
+async function createBalancedTeams(doc) {
   const randomTeams = [];
-  const playerRanks = await getPlayerRanks(doc, soloPlayers);
-  const teamCount = (soloPlayers.length / doc.getTeamSize());
+  const playerRanks = await getPlayerRanks(doc);
+  const teamCount = (doc.getSoloPlayers().length / doc.getTeamSize());
 
   if (doc.isDuos()) {
     for (let i = 1; i <= teamCount; i += 1) {
@@ -739,10 +748,79 @@ async function createBalancedTeams(doc, soloPlayers) {
 }
 
 /**
+ * Creates patchwork teams
+ * @param Lobby doc
+ * @returns Array 
+ */
+async function createPatchworkTeams(doc) {
+  const patchworkTeams = [];
+  const soloPlayers = doc.getSoloPlayers();
+
+  for (const teamA in doc.teamList) {
+    const possibleMatches = [];
+
+    for (const teamB in doc.teamList) {
+      if (compareArrays(doc.teamList[teamA], doc.teamList[teamB])) {
+        continue;
+      }
+  
+      if (doc.teamList[teamA].length + doc.teamList[teamB].length === doc.getTeamSize()) {
+        possibleMatches.push({
+          'team'    : doc.teamList[teamB],
+          'index'   : teamB,
+          'source'  : 'teamList'
+        });
+      }
+    }
+  
+    const soloPlayerFillCount = doc.getTeamSize() - doc.teamList[teamA].length;
+  
+    if (soloPlayerFillCount < soloPlayers.length) {
+      const loops = Math.floor(soloPlayers.length / soloPlayerFillCount);
+  
+      for (const i = 1; i <= loops; i++) {
+        const randomTeam = [];
+  
+        for (const x = 1; x <= doc.getTeamSize(); x++) {
+          const randomPlayer = getRandomArrayElement(soloPlayers);
+          randomTeam.push(randomPlayer);
+        }
+  
+        possibleMatches.push({
+          'team'    : randomTeam,
+          'index'   : null,
+          'source'  : 'soloPlayers'
+        });
+      }
+    }
+
+    /**
+     * Maybe prefer the match where the combined MMR is closer to the lobby average?
+     * Randomizing teams could lead to a balance issue
+     */
+    randomMatch = getRandomArrayElement(possibleMatches);
+    patchworkTeams.push([...doc.teamList[teamA].concat(randomMatch.team)]);
+
+    /* Remove players and teams so they don't appear twice */
+    if (randomMatch.source == 'teamList') {
+      doc.teamList.splice(randomMatch.index, 1);
+    }
+
+    if (randomMatch.source == 'soloPlayers') {
+      for (const y = 0; y < randomMatch.team.length; y++) {
+        soloPlayers.splice(soloPlayers.indexOf(randomMatch.team[y]), 1);
+      }
+    }
+  }
+
+  return patchworkTeams;
+}
+
+/**
  * Sets up a tournament round
  * @param doc
  * @param roomChannel
- * @returns {Promise<void>}
+ * @returns Promise<void>
  */
 async function setupTournamentRound(doc, roomChannel) {
   const pinnedMessages = await roomChannel.messages.fetchPinned();
@@ -834,38 +912,40 @@ async function setupTournamentRound(doc, roomChannel) {
 }
 
 /**
- * Sets up channel permission overrides for lobby rooms if needed
+ * Makes a lobby room private
  * @param doc
  * @param roomChannel
  * @returns {Promise<void>}
  */
-async function createChannelOverwrites(doc, roomChannel) {
+async function makeLobbyRoomPrivate(doc, roomChannel) {
   const guild = client.guilds.cache.get(doc.guild);
 
   const roleVerified = await guild.roles.findByName(config.roles.verified_player_role);
   const roleMatchmaking = await guild.roles.findByName(config.roles.matchmaking_role);
-  await roomChannel.createOverwrite(roleVerified, { VIEW_CHANNEL: false });
-  await roomChannel.createOverwrite(roleMatchmaking, { VIEW_CHANNEL: false });
+
+  await roomChannel.createOverwrite(roleVerified, { SEND_MESSAGES: false });
+  await roomChannel.createOverwrite(roleMatchmaking, { SEND_MESSAGES: false });
 
   for (const p of doc.players) {
     const member = await guild.members.fetch(p);
-    await roomChannel.createOverwrite(member, { VIEW_CHANNEL: true });
+    await roomChannel.createOverwrite(member, { SEND_MESSAGES: true });
   }
 }
 
 /**
- * Resets channel permission overrides for lobby rooms
+ * Makes a lobby room public
  * @param doc
  * @param roomChannel
  * @returns {Promise<void>}
  */
-async function resetChannelOverwrites(doc, roomChannel) {
+async function makeLobbyRoomPublic(doc, roomChannel) {
   const guild = client.guilds.cache.get(doc.guild);
 
   const roleVerified = await guild.roles.findByName(config.roles.verified_player_role);
   const roleMatchmaking = await guild.roles.findByName(config.roles.matchmaking_role);
-  await roomChannel.createOverwrite(roleVerified, { VIEW_CHANNEL: true });
-  await roomChannel.createOverwrite(roleMatchmaking, { VIEW_CHANNEL: true });
+
+  await roomChannel.createOverwrite(roleVerified, { SEND_MESSAGES: true });
+  await roomChannel.createOverwrite(roleMatchmaking, { SEND_MESSAGES: true });
 
   for (const p of doc.players) {
     const overwrite = roomChannel.permissionOverwrites.get(p);
@@ -921,7 +1001,7 @@ function startLobby(docId) {
             }
 
             if (doc.privateChannel) {
-              await createChannelOverwrites(doc, roomChannel);
+              await makeLobbyRoomPrivate(doc, roomChannel);
             }
 
             const joinLobbyButtonCopy = JSON.parse(JSON.stringify(joinLobbyButton));
@@ -959,7 +1039,13 @@ function startLobby(docId) {
               tracks = tracks.join('\n');
 
               if (doc.isTeams()) {
-                const randomTeams = await createBalancedTeams(doc, doc.getSoloPlayers());
+                let randomTeams = [];
+
+                if (!doc.hasPatchworkTeams()) {
+                  randomTeams = await createBalancedTeams(doc);
+                } else {
+                  randomTeams = await createPatchworkTeams(doc);
+                }
 
                 doc.teamList = Array.from(doc.teamList).concat(randomTeams);
               }
@@ -1253,7 +1339,7 @@ function deleteLobby(doc, message, sendMessage) {
     // eslint-disable-next-line max-len
     const channel = guild.channels.cache.find((c) => c.name.toLowerCase() === getRoomName(room.number).toLowerCase());
     if (channel && doc.privateChannel) {
-      await resetChannelOverwrites(doc, channel);
+      await makeLobbyRoomPublic(doc, channel);
     }
 
     if (message && channel && message.channel.id !== channel.id) {
@@ -2330,22 +2416,43 @@ async function mogi(reaction, user, removed = false) {
             }
             doc.teamList = teamList;
           } else if (doc.isWar() && !doc.is1v1()) {
-            const team = await Team.findOne({
+            let team = await Team.findOne({
               guild: guild.id,
               players: user.id,
             });
 
+            /* 
+             * Hack: Pretend a duo is a team
+             *
+             * Doing this will apply the 4 vs. 4 validation to duos which
+             * might not always lead to the desired result but it does the job well enough
+             */
+            if (!team) {
+              const userSavedDuo = await Duo.findOne({
+                guild: guild.id,
+                $or: [{ discord1: user.id }, { discord2: user.id }],
+              });
+
+              if (userSavedDuo) {
+                team = {
+                  guild: userSavedDuo.guild,
+                  players: [userSavedDuo.discord1, userSavedDuo.discord2],
+                  date: userSavedDuo.date
+                };
+              }
+            }
+
             if (team) {
-              if (doc.is3v3() && team.players.length === 4) {
-                errors.push('You cannot join a 3 vs. 3 lobby with a team of 4 players.');
-              }
-
-              if (doc.is4v4() && team.players.length === 3) {
-                errors.push('You cannot join a 4 vs. 4 lobby with a team of 3 players.');
-              }
-
               if (doc.isInsta()) {
                 errors.push('This lobby does not allow premade teams.');
+              }
+
+              if (team.players.length > doc.getTeamSize()) {
+                errors.push('The size of your team is too big for this lobby.');
+              }
+
+              if (!doc.getAvailableTeamSizes().includes(team.players.length)) {
+                errors.push('You cannot join this lobby because there are not enough open spots for the size of your team.');
               }
 
               const teamPlayers = team.players;
@@ -2421,23 +2528,6 @@ async function mogi(reaction, user, removed = false) {
                 // eslint-disable-next-line max-len
                 if (doc.reservedTeam && !team.players.includes(doc.creator) && !team.players.includes(doc.reservedTeam)) {
                   errors.push(`The lobby is reserved for <@!${doc.creator}>'s and <@!${doc.reservedTeam}>'s teams.`);
-                }
-
-                let cutoffPlayerCount;
-                if (doc.is4v4()) {
-                  cutoffPlayerCount = 4;
-                } else {
-                  cutoffPlayerCount = 3;
-                }
-
-                if (playersCount > cutoffPlayerCount) {
-                  const soloQueue = players.filter((p) => !doc.teamList.flat().includes(p));
-                  if (doc.teamList.length) {
-                    players = players.filter((p) => !soloQueue.includes(p));
-                  } else {
-                    const soloToKick = soloQueue.slice(cutoffPlayerCount);
-                    players = players.filter((p) => !soloToKick.includes(p));
-                  }
                 }
 
                 if (!players.some((p) => teamPlayers.includes(p))) {
@@ -2564,7 +2654,7 @@ client.on('messageDelete', async (message) => {
           }
 
           if (doc.privateChannel) {
-            resetChannelOverwrites(doc, channel).then();
+            makeLobbyRoomPublic(doc, channel).then();
           }
         }
 

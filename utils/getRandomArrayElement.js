@@ -3,7 +3,7 @@
  * @returns {*}
  */
 function getRandomArrayElement(array) {
-    return array[Math.floor(Math.random() * array.length)];
+  return array[Math.floor(Math.random() * array.length)];
 }
 
-module.exports = getRandomArrayElement
+module.exports = getRandomArrayElement;
