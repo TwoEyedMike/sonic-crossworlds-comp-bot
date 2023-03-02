@@ -796,6 +796,10 @@ async function createPatchworkTeams(doc) {
       });
     }
 
+    if (possibleMatches.length <= 0) {
+      continue;
+    }
+
     /**
      * Maybe prefer the match where the combined MMR is closer to the lobby average?
      * Randomizing teams could lead to a balance issue
@@ -1043,7 +1047,7 @@ function startLobby(docId) {
               if (doc.isTeams()) {
                 let randomTeams = [];
 
-                if (!doc.hasPatchworkTeams()) {
+                if (!doc.hasIncompleteTeams()) {
                   randomTeams = await createBalancedTeams(doc);
                 } else {
                   randomTeams = await createPatchworkTeams(doc);
@@ -2453,7 +2457,7 @@ async function mogi(reaction, user, removed = false) {
                 errors.push('The size of your team is too big for this lobby.');
               }
 
-              if (!doc.getAvailableTeamSizes().includes(team.players.length)) {
+              if (doc.hasIncompleteTeams() && !doc.getAvailableTeamSizes().includes(team.players.length)) {
                 errors.push('You cannot join this lobby because there are not enough open spots for the size of your team.');
               }
 
@@ -2530,6 +2534,20 @@ async function mogi(reaction, user, removed = false) {
                 // eslint-disable-next-line max-len
                 if (doc.reservedTeam && !team.players.includes(doc.creator) && !team.players.includes(doc.reservedTeam)) {
                   errors.push(`The lobby is reserved for <@!${doc.creator}>'s and <@!${doc.reservedTeam}>'s teams.`);
+                }
+
+                if (!doc.hasIncompleteTeams()) {
+                  const cutoffPlayerCount = doc.getTeamSize();
+  
+                  if (playersCount > cutoffPlayerCount) {
+                    const soloQueue = players.filter((p) => !doc.teamList.flat().includes(p));
+                    if (doc.teamList.length) {
+                      players = players.filter((p) => !soloQueue.includes(p));
+                    } else {
+                      const soloToKick = soloQueue.slice(cutoffPlayerCount);
+                      players = players.filter((p) => !soloToKick.includes(p));
+                    }
+                  }
                 }
 
                 if (!players.some((p) => teamPlayers.includes(p))) {

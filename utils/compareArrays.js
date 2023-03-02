@@ -5,7 +5,7 @@
  * @returns 
  */
 function compareArrays(array1, array2) {
-    const array1Sorted = array1.slice().sort();
+  const array1Sorted = array1.slice().sort();
   const array2Sorted = array2.slice().sort();
 
   return array1.length === array2.length && array1Sorted.every(function (value, index) {

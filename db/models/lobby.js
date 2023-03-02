@@ -422,33 +422,33 @@ Lobby.methods = {
 
     return availableTeamSizes;
   },
-  hasPatchworkTeams() {
+  hasIncompleteTeams() {
     if (!this.is3v3() && !this.is4v4()) {
       return false
     }
 
     /*
      * If all the players in the lobby are in the solo queue then
-     * we don't have a patchwork lobby
+     * we don't have a lobby with incomplete teams
      */
     if (this.getSoloPlayers().length == this.players.length) {
       return false;
     }
 
-    let hasPatchworkTeams = false;
+    let hasIncompleteTeams = false;
 
     /*
      * If any team's size is below the usual then we obviously
-     * have patchwork teams
+     * have incomplete teams
      */
     for (team in this.teamList) {
       if (teamList[team].length < this.getTeamSize()) {
-        hasPatchworkTeams = true;
+        hasIncompleteTeams = true;
         break;
       }
     }
 
-    return hasPatchworkTeams;
+    return hasIncompleteTeams;
   },
   getMinimumPlayerCount() {
     let minimumPlayers;
