@@ -763,43 +763,45 @@ async function createPatchworkTeams(doc) {
       if (compareArrays(doc.teamList[teamA], doc.teamList[teamB])) {
         continue;
       }
-  
+
       if (doc.teamList[teamA].length + doc.teamList[teamB].length === doc.getTeamSize()) {
         possibleMatches.push({
-          'team'    : doc.teamList[teamB],
-          'index'   : teamB,
-          'source'  : 'teamList'
+          team: doc.teamList[teamB],
+          index: teamB,
+          source: 'teamList'
         });
       }
     }
-  
+
     const soloPlayerFillCount = doc.getTeamSize() - doc.teamList[teamA].length;
-  
-    if (soloPlayerFillCount < soloPlayers.length) {
+
+    if (soloPlayerFillCount <= soloPlayers.length) {
+      const randomTeam = [];
       const loops = Math.floor(soloPlayers.length / soloPlayerFillCount);
-  
-      for (const i = 1; i <= loops; i++) {
-        const randomTeam = [];
-  
-        for (const x = 1; x <= doc.getTeamSize(); x++) {
-          const randomPlayer = getRandomArrayElement(soloPlayers);
+
+      for (let i = 1; i <= loops; i++) {
+        let remainingPlayers = soloPlayers;
+
+        for (let x = 1; x <= soloPlayerFillCount; x++) {
+          const randomPlayer = getRandomArrayElement(remainingPlayers);
           randomTeam.push(randomPlayer);
+          remainingPlayers.splice(remainingPlayers.indexOf(randomPlayer), 1);
         }
-  
-        possibleMatches.push({
-          'team'    : randomTeam,
-          'index'   : null,
-          'source'  : 'soloPlayers'
-        });
       }
+
+      possibleMatches.push({
+        team: randomTeam,
+        index: null,
+        source: 'soloPlayers'
+      });
     }
 
     /**
      * Maybe prefer the match where the combined MMR is closer to the lobby average?
      * Randomizing teams could lead to a balance issue
      */
-    randomMatch = getRandomArrayElement(possibleMatches);
-    patchworkTeams.push([...doc.teamList[teamA].concat(randomMatch.team)]);
+    const randomMatch = getRandomArrayElement(possibleMatches);
+    patchworkTeams.push(doc.teamList[teamA].concat(randomMatch.team));
 
     /* Remove players and teams so they don't appear twice */
     if (randomMatch.source == 'teamList') {
@@ -807,7 +809,7 @@ async function createPatchworkTeams(doc) {
     }
 
     if (randomMatch.source == 'soloPlayers') {
-      for (const y = 0; y < randomMatch.team.length; y++) {
+      for (let y = 0; y < randomMatch.team.length; y++) {
         soloPlayers.splice(soloPlayers.indexOf(randomMatch.team[y]), 1);
       }
     }
