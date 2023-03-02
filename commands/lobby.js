@@ -2457,7 +2457,7 @@ async function mogi(reaction, user, removed = false) {
                 errors.push('The size of your team is too big for this lobby.');
               }
 
-              if (doc.hasIncompleteTeams() && !doc.getAvailableTeamSizes().some((s) => s => team.players.length)) {
+              if (doc.hasIncompleteTeams() && !doc.getAvailableTeamSizes().some((s) => s >= team.players.length)) {
                 errors.push('You cannot join this lobby because there are not enough open spots for the size of your team.');
               }
 
