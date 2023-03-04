@@ -275,7 +275,12 @@ async function getEmbed(doc, players, tracks, roomChannel) {
       let mmrSum = 0;
 
       team.forEach((player) => {
-        const info = playersInfo[player];
+        let info = playersInfo[player];
+
+        if (!info) {
+            info = { rank: doc.getDefaultRank() };
+        }
+
         mmrSum += info.rank;
       });
 
@@ -755,68 +760,80 @@ async function createBalancedTeams(doc) {
 async function createPatchworkTeams(doc) {
   const patchworkTeams = [];
   const soloPlayers = doc.getSoloPlayers();
+  const teams = doc.teamList;
+  const matchedTeams = [];
 
   for (const teamA in doc.teamList) {
     const possibleMatches = [];
 
-    for (const teamB in doc.teamList) {
-      if (compareArrays(doc.teamList[teamA], doc.teamList[teamB])) {
+    if (matchedTeams.some((m) => compareArrays(m, teams[teamA]))) {
+      continue;
+    }
+
+    /* Check other teams for possible matches */
+    for (const teamB in teams) {
+      if (matchedTeams.some((m) => compareArrays(m, teams[teamB])) || compareArrays(teams[teamA], teams[teamB])) {
         continue;
       }
 
-      if (doc.teamList[teamA].length + doc.teamList[teamB].length === doc.getTeamSize()) {
+      if (teams[teamA].length + teams[teamB].length === doc.getTeamSize()) {
         possibleMatches.push({
-          team: doc.teamList[teamB],
+          team: teams[teamB],
           index: teamB,
           source: 'teamList'
         });
       }
     }
 
-    const soloPlayerFillCount = doc.getTeamSize() - doc.teamList[teamA].length;
+    /* Check solo queue for possible matches */
+    const soloPlayerFillCount = doc.getTeamSize() - teams[teamA].length;
 
-    if (soloPlayerFillCount <= soloPlayers.length) {
-      const randomTeam = [];
+    if (soloPlayers.length >= soloPlayerFillCount) {
+      const randomTeams = [];
       const loops = Math.floor(soloPlayers.length / soloPlayerFillCount);
 
       for (let i = 1; i <= loops; i++) {
-        let remainingPlayers = soloPlayers;
+        let remainingPlayers = [...soloPlayers];
+        const randomTeam = [];
 
         for (let x = 1; x <= soloPlayerFillCount; x++) {
           const randomPlayer = getRandomArrayElement(remainingPlayers);
           randomTeam.push(randomPlayer);
           remainingPlayers.splice(remainingPlayers.indexOf(randomPlayer), 1);
         }
+
+        randomTeams.push(randomTeam);
       }
 
-      possibleMatches.push({
-        team: randomTeam,
-        index: null,
-        source: 'soloPlayers'
-      });
+      for (const r in randomTeams) {
+        possibleMatches.push({
+          team: randomTeams[r],
+          index: null,
+          source: 'soloPlayers'
+        });
+      }
     }
 
-    if (possibleMatches.length <= 0) {
-      continue;
-    }
-
-    /**
-     * Maybe prefer the match where the combined MMR is closer to the lobby average?
-     * Randomizing teams could lead to a balance issue
-     */
     const randomMatch = getRandomArrayElement(possibleMatches);
-    patchworkTeams.push(doc.teamList[teamA].concat(randomMatch.team));
+
+    patchworkTeams.push(teams[teamA].concat(randomMatch.team));
+    matchedTeams.push(teams[teamA]);
 
     /* Remove players and teams so they don't appear twice */
-    if (randomMatch.source == 'teamList') {
-      doc.teamList.splice(randomMatch.index, 1);
+    if (randomMatch.source === 'teamList') {
+      teams.splice(randomMatch.index, 1);
+      matchedTeams.push(randomMatch.team);
     }
 
-    if (randomMatch.source == 'soloPlayers') {
+    if (randomMatch.source === 'soloPlayers') {
       for (let y = 0; y < randomMatch.team.length; y++) {
         soloPlayers.splice(soloPlayers.indexOf(randomMatch.team[y]), 1);
       }
     }
+  }
+
+  if (soloPlayers.length > 0) {
+    patchworkTeams.push([...soloPlayers]);
   }
 
   return patchworkTeams;
@@ -984,9 +1001,6 @@ function startLobby(docId) {
                 });
 
                 for (l in playerLobbies) {
-                    console.log(l);
-                    console.log(playerLobbies[l]);
-
                     let lobbyMessage = await client.guilds.cache
                         .get(playerLobbies[l].guild).channels.cache
                         .get(playerLobbies[l].channel).messages
@@ -1049,11 +1063,11 @@ function startLobby(docId) {
 
                 if (!doc.hasIncompleteTeams()) {
                   randomTeams = await createBalancedTeams(doc);
+                  doc.teamList = Array.from(doc.teamList).concat(randomTeams);
                 } else {
                   randomTeams = await createPatchworkTeams(doc);
+                  doc.teamList = randomTeams;
                 }
-
-                doc.teamList = Array.from(doc.teamList).concat(randomTeams);
               }
 
               doc.number = await getLobbyNumber(doc.type);

@@ -406,7 +406,7 @@ Lobby.methods = {
     let availableTeamSizes = [this.getTeamSize(), this.getTeamSize()]
 
     for (team in this.teamList) {
-      const teamSize = teamList[team].length;
+      const teamSize = this.teamList[team].length;
 
       if (availableTeamSizes[0] >= teamSize) {
         availableTeamSizes[0] = availableTeamSizes[0] - teamSize;
@@ -442,7 +442,7 @@ Lobby.methods = {
      * have incomplete teams
      */
     for (team in this.teamList) {
-      if (teamList[team].length < this.getTeamSize()) {
+      if (this.teamList[team].length < this.getTeamSize()) {
         hasIncompleteTeams = true;
         break;
       }
