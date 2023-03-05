@@ -9,6 +9,8 @@ const { trackOptions } = require('../track_options');
 
 const createDraft = require('../../utils/createDraft');
 const createDraftv2 = require('../../utils/createDraftv2');
+const getRandomArrayElement = require('../../utils/getRandomArrayElement');
+
 const {
   TYPE_FFA,
   TYPE_DUOS,
@@ -389,6 +391,64 @@ Lobby.methods = {
     }
 
     return 1;
+  },
+  getAvailableTeamSizes() {
+    const full = [0, 0];
+
+    /**
+     * This code will only work for wars because it's made for "solo queue with friends"
+     * By nature this will only work in lobbies where you have more than 1 teammate
+     */
+    if (!this.is3v3() && !this.is4v4()) {
+      return full;
+    }
+
+    let availableTeamSizes = [this.getTeamSize(), this.getTeamSize()]
+
+    for (team in this.teamList) {
+      const teamSize = this.teamList[team].length;
+
+      if (availableTeamSizes[0] >= teamSize) {
+        availableTeamSizes[0] = availableTeamSizes[0] - teamSize;
+      } else {
+        if (availableTeamSizes[1] >= teamSize) {
+          availableTeamSizes[1] = availableTeamSizes[1] - teamSize;
+        } else {
+          console.log('Encountered an invalid team constellation.');
+          return full;
+        }
+      }
+    }
+
+    return availableTeamSizes;
+  },
+  hasIncompleteTeams() {
+    if (!this.is3v3() && !this.is4v4()) {
+      return false
+    }
+
+    /*
+     * If all the players in the lobby are in the solo queue then
+     * we don't have a lobby with incomplete teams
+     */
+    if (this.getSoloPlayers().length == this.players.length) {
+      return false;
+    }
+
+    let hasIncompleteTeams = false;
+
+    /*
+     * If any team's size is below the usual then we obviously
+     * have incomplete teams
+     */
+    for (team in this.teamList) {
+      if (this.teamList[team].length < this.getTeamSize()) {
+        hasIncompleteTeams = true;
+        break;
+      }
+    }
+
+    return hasIncompleteTeams;
   },
   getMinimumPlayerCount() {
     let minimumPlayers;
@@ -1079,13 +1139,13 @@ Lobby.methods = {
     if (this.isFFA()) {
       playersToFetch.push(this.players);
     } else if (this.isDuos()) {
-      playersToFetch.push(this.teamList[0].random());
-      playersToFetch.push(this.teamList[1].random());
-      playersToFetch.push(this.teamList[2].random());
-      playersToFetch.push(this.teamList[3].random());
+      playersToFetch.push(getRandomArrayElement(this.teamList[0]));
+      playersToFetch.push(getRandomArrayElement(this.teamList[1]));
+      playersToFetch.push(getRandomArrayElement(this.teamList[2]));
+      playersToFetch.push(getRandomArrayElement(this.teamList[3]));
     } else if (this.isWar()) {
-      playersToFetch.push(this.teamList[0].random());
-      playersToFetch.push(this.teamList[1].random());
+      playersToFetch.push(getRandomArrayElement(this.teamList[0]));
+      playersToFetch.push(getRandomArrayElement(this.teamList[1]));
     }
 
     playersToFetch.forEach((p) => {

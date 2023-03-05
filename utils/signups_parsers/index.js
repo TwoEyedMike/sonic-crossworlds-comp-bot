@@ -6,6 +6,7 @@ const _3v3 = require('./3v3');
 const _4v4 = require('./4v4');
 const wc = require('./wc');
 const tt = require('./tt');
+const tt2 = require('./tt2');
 const rng = require('./random');
 const league = require('./league');
 
@@ -167,6 +168,10 @@ function parse(message, fields) {
           if (!['PS4', 'Xbox', 'Switch'].includes(value)) return false;
           data.console = value;
           return true;
+        case 'timeZone':
+            if (!['America', 'Europe', 'Asia'].includes(value)) return false;
+            data.timeZone = value;
+            return true;
         case 'flag': // unique for WC
           if (!message.client.flags.includes(value)) {
             return false;
@@ -221,6 +226,7 @@ module.exports.parsers = {
   '4v4': _4v4,
   WC: wc,
   TT: tt,
+  TT2: tt2,
   RNG: rng,
   League: league,
 };

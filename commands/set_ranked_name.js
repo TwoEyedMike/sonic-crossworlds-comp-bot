@@ -97,13 +97,13 @@ module.exports = {
 
         // eslint-disable-next-line no-shadow,consistent-return
         Player.findOne({ discordId: user.id }).then((player) => {
-          if (player.rankedName && !message.member.isStaff()) {
-            return message.channel.warn('You cannot change your ranked name. Please message a staff member.');
+          if (!player) {
+              player = new Player();
+              player.discordId = message.author.id;
           }
 
-          if (!player) {
-            player = new Player();
-            player.discordId = message.author.id;
+          if (player.rankedName && !message.member.isStaff()) {
+            return message.channel.warn('You cannot change your ranked name. Please message a staff member.');
           }
 
           if (!player.oldRankedNames.includes(player.rankedName)) {

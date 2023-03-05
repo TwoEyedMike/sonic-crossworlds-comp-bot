@@ -45,11 +45,14 @@ const { Room } = require('../db/models/room');
 const { Sequence } = require('../db/models/sequence');
 const { Team } = require('../db/models/team');
 const { client } = require('../bot');
+const compareArrays = require('../utils/compareArrays');
 const generateBattleModes = require('../utils/generateBattleModes');
 const generateTemplate = require('../utils/generateTemplate');
 const generateTracks = require('../utils/generateTracks');
 const getConfigValue = require('../utils/getConfigValue');
 const getLorenziBoardData = require('../utils/getLorenziBoardData');
+const greedyPartition = require('../utils/greedyPartition');
+const shuffleArray = require('../utils/shuffleArray');
 
 const {
   optimalPartition3,
@@ -66,6 +69,7 @@ const { lobbyTypes } = require('../db/lobby_types');
 const { regions } = require('../db/regions');
 const { rulesets } = require('../db/rulesets');
 const { trackOptions } = require('../db/track_options');
+const getRandomArrayElement = require('../utils/getRandomArrayElement');
 
 const lock = new AsyncLock();
 
@@ -272,7 +276,12 @@ async function getEmbed(doc, players, tracks, roomChannel) {
       let mmrSum = 0;
 
       team.forEach((player) => {
-        const info = playersInfo[player];
+        let info = playersInfo[player];
+
+        if (!info) {
+            info = { rank: doc.getDefaultRank() };
+        }
+
         mmrSum += info.rank;
       });
 
@@ -280,6 +289,14 @@ async function getEmbed(doc, players, tracks, roomChannel) {
         playersText += `**Team ${i + 1} (Rating: ${Math.floor(mmrSum / team.length)})**\n`;
       } else {
         playersText += `**Team ${i + 1}**\n`;
+      }
+
+      /* Fill the remaining spots with "Open" spots */
+      if (team.length < doc.getTeamSize()) {
+        for (let i = (team.length + 1); i <= doc.getTeamSize(); i++) {
+          team.push(i);
+          playersInfo[i] = { tag: '*Open*', psn: '-', rank: '-' };
+        }
       }
 
       team.forEach((player, x) => {
@@ -622,11 +639,11 @@ async function getPlayersText(doc) {
 /**
  * Returns an array of player ranks for a lobby
  * @param doc
- * @param players
  * @returns {Promise<*[]>}
  */
-async function getPlayerRanks(doc, players) {
+async function getPlayerRanks(doc) {
   const playerRanks = [];
+  const players = doc.getSoloPlayers();
 
   for (const p of players) {
     const [, , rank] = await getPlayerInfo(p, doc);
@@ -695,13 +712,12 @@ function sendBattleModeSettings(doc, roomChannel, modes) {
 /**
  * Creates balanced teams
  * @param doc
- * @param soloPlayers
- * @returns {Promise<*[]>}
+ * @returns Promise<*[]>
  */
-async function createBalancedTeams(doc, soloPlayers) {
+async function createBalancedTeams(doc) {
   const randomTeams = [];
-  const playerRanks = await getPlayerRanks(doc, soloPlayers);
-  const teamCount = (soloPlayers.length / doc.getTeamSize());
+  const playerRanks = await getPlayerRanks(doc);
+  const teamCount = (doc.getSoloPlayers().length / doc.getTeamSize());
 
   if (doc.isDuos()) {
     for (let i = 1; i <= teamCount; i += 1) {
@@ -718,9 +734,9 @@ async function createBalancedTeams(doc, soloPlayers) {
       let result;
 
       if (!doc.is4v4()) {
-        result = optimalPartition3(playerRanks, doc.getTeamSize(), 'rank');
+        result = optimalPartition3(playerRanks, 'rank');
       } else {
-        result = optimalPartition4(playerRanks, doc.getTeamSize(), 'rank');
+        result = optimalPartition4(playerRanks, 'rank');
       }
 
       const playersA = result.A.map((a) => a.discordId);
@@ -738,10 +754,97 @@ async function createBalancedTeams(doc, soloPlayers) {
 }
 
 /**
+ * Creates patchwork teams
+ * @param Lobby doc
+ * @returns Array 
+ */
+async function createPatchworkTeams(doc) {
+  const patchworkTeams = [];
+  const soloPlayers = doc.getSoloPlayers();
+  const teams = doc.teamList;
+  const matchedTeams = [];
+
+  for (const teamA in doc.teamList) {
+    const possibleMatches = [];
+
+    if (matchedTeams.some((m) => compareArrays(m, teams[teamA]))) {
+      continue;
+    }
+
+    /* Check other teams for possible matches */
+    for (const teamB in teams) {
+      if (matchedTeams.some((m) => compareArrays(m, teams[teamB])) || compareArrays(teams[teamA], teams[teamB])) {
+        continue;
+      }
+
+      if (teams[teamA].length + teams[teamB].length === doc.getTeamSize()) {
+        possibleMatches.push({
+          team: teams[teamB],
+          index: teamB,
+          source: 'teamList'
+        });
+      }
+    }
+
+    /* Check solo queue for possible matches */
+    const soloPlayerFillCount = doc.getTeamSize() - teams[teamA].length;
+
+    if (soloPlayers.length >= soloPlayerFillCount) {
+      const randomTeams = [];
+      const loops = Math.floor(soloPlayers.length / soloPlayerFillCount);
+
+      for (let i = 1; i <= loops; i++) {
+        let remainingPlayers = [...soloPlayers];
+        const randomTeam = [];
+
+        for (let x = 1; x <= soloPlayerFillCount; x++) {
+          const randomPlayer = getRandomArrayElement(remainingPlayers);
+          randomTeam.push(randomPlayer);
+          remainingPlayers.splice(remainingPlayers.indexOf(randomPlayer), 1);
+        }
+
+        randomTeams.push(randomTeam);
+      }
+
+      for (const r in randomTeams) {
+        possibleMatches.push({
+          team: randomTeams[r],
+          index: null,
+          source: 'soloPlayers'
+        });
+      }
+    }
+
+    const randomMatch = getRandomArrayElement(possibleMatches);
+
+    patchworkTeams.push(teams[teamA].concat(randomMatch.team));
+    matchedTeams.push(teams[teamA]);
+
+    /* Remove players and teams so they don't appear twice */
+    if (randomMatch.source === 'teamList') {
+      teams.splice(randomMatch.index, 1);
+      matchedTeams.push(randomMatch.team);
+    }
+
+    if (randomMatch.source === 'soloPlayers') {
+      for (let y = 0; y < randomMatch.team.length; y++) {
+        soloPlayers.splice(soloPlayers.indexOf(randomMatch.team[y]), 1);
+      }
+    }
+  }
+
+  if (soloPlayers.length > 0) {
+    patchworkTeams.push([...soloPlayers]);
+  }
+
+  return patchworkTeams;
+}
+
+/**
  * Sets up a tournament round
  * @param doc
  * @param roomChannel
- * @returns {Promise<void>}
+ * @returns Promise<void>
  */
 async function setupTournamentRound(doc, roomChannel) {
   const pinnedMessages = await roomChannel.messages.fetchPinned();
@@ -770,17 +873,16 @@ async function setupTournamentRound(doc, roomChannel) {
 
   if (doc.isSolos()) {
     const lobbyCount = doc.players.length / doc.getDefaultPlayerCount();
-    const shuffledPlayers = doc.players.shuffle();
+
+    /* Attempt MMR balancing */
+    const playerRanks = await getPlayerRanks(doc);
+    const distributedPlayers = greedyPartition(playerRanks, lobbyCount, doc.getDefaultPlayerCount(), 'rank');
+
     const lobbyData = [];
 
     // eslint-disable-next-line no-plusplus
     for (let i = 1; i <= lobbyCount; i++) {
-      const players = [];
-
-      // eslint-disable-next-line no-plusplus
-      for (let x = 1; x <= doc.getDefaultPlayerCount(); x++) {
-        players.push(shuffledPlayers.shift());
-      }
+      const players = distributedPlayers[i - 1].map((d) => d.discordId);
 
       const [PSNs, templateUrl, template] = await generateTemplate(players, doc);
 
@@ -833,38 +935,40 @@ async function setupTournamentRound(doc, roomChannel) {
 }
 
 /**
- * Sets up channel permission overrides for lobby rooms if needed
+ * Makes a lobby room private
  * @param doc
  * @param roomChannel
  * @returns {Promise<void>}
  */
-async function createChannelOverwrites(doc, roomChannel) {
+async function makeLobbyRoomPrivate(doc, roomChannel) {
   const guild = client.guilds.cache.get(doc.guild);
 
   const roleVerified = await guild.roles.findByName(config.roles.verified_player_role);
   const roleMatchmaking = await guild.roles.findByName(config.roles.matchmaking_role);
-  await roomChannel.createOverwrite(roleVerified, { VIEW_CHANNEL: false });
-  await roomChannel.createOverwrite(roleMatchmaking, { VIEW_CHANNEL: false });
+
+  await roomChannel.createOverwrite(roleVerified, { SEND_MESSAGES: false });
+  await roomChannel.createOverwrite(roleMatchmaking, { SEND_MESSAGES: false });
 
   for (const p of doc.players) {
     const member = await guild.members.fetch(p);
-    await roomChannel.createOverwrite(member, { VIEW_CHANNEL: true });
+    await roomChannel.createOverwrite(member, { SEND_MESSAGES: true });
   }
 }
 
 /**
- * Resets channel permission overrides for lobby rooms
+ * Makes a lobby room public
  * @param doc
  * @param roomChannel
  * @returns {Promise<void>}
  */
-async function resetChannelOverwrites(doc, roomChannel) {
+async function makeLobbyRoomPublic(doc, roomChannel) {
   const guild = client.guilds.cache.get(doc.guild);
 
   const roleVerified = await guild.roles.findByName(config.roles.verified_player_role);
   const roleMatchmaking = await guild.roles.findByName(config.roles.matchmaking_role);
-  await roomChannel.createOverwrite(roleVerified, { VIEW_CHANNEL: true });
-  await roomChannel.createOverwrite(roleMatchmaking, { VIEW_CHANNEL: true });
+
+  await roomChannel.createOverwrite(roleVerified, { SEND_MESSAGES: true });
+  await roomChannel.createOverwrite(roleMatchmaking, { SEND_MESSAGES: true });
 
   for (const p of doc.players) {
     const overwrite = roomChannel.permissionOverwrites.get(p);
@@ -889,8 +993,35 @@ function startLobby(docId) {
       generateTracks(doc).then((tracks) => {
         findRoom(doc).then((room) => {
           findRoomChannel(doc, room.number).then(async (roomChannel) => {
+            // remove all players from their other lobbies
+            for (p in doc.players) {
+                const playerLobbies = await Lobby.find({ 
+                    _id: { $ne: doc._id }, 
+                    players: doc.players[p]
+                });
+
+                for (l in playerLobbies) {
+                    let lobbyMessage = await client.guilds.cache
+                        .get(playerLobbies[l].guild).channels.cache
+                        .get(playerLobbies[l].channel).messages
+                        .fetch(playerLobbies[l].message);
+
+                    let reaction = {
+                        message: lobbyMessage,
+                        users: null,
+                    };
+
+                    let user = client.users.cache.get(doc.players[p]);
+                    if (!user) {
+                        continue;
+                    }
+
+                    await mogi(reaction, user, true);
+                }
+            }
+
             if (doc.privateChannel) {
-              await createChannelOverwrites(doc, roomChannel);
+              await makeLobbyRoomPrivate(doc, roomChannel);
             }
 
             const joinLobbyButtonCopy = JSON.parse(JSON.stringify(joinLobbyButton));
@@ -928,9 +1059,15 @@ function startLobby(docId) {
               tracks = tracks.join('\n');
 
               if (doc.isTeams()) {
-                const randomTeams = await createBalancedTeams(doc, doc.getSoloPlayers());
+                let randomTeams = [];
 
-                doc.teamList = Array.from(doc.teamList).concat(randomTeams);
+                if (!doc.hasIncompleteTeams()) {
+                  randomTeams = await createBalancedTeams(doc);
+                  doc.teamList = Array.from(doc.teamList).concat(randomTeams);
+                } else {
+                  randomTeams = await createPatchworkTeams(doc);
+                  doc.teamList = randomTeams;
+                }
               }
 
               doc.number = await getLobbyNumber(doc.type);
@@ -1222,7 +1359,7 @@ function deleteLobby(doc, message, sendMessage) {
     // eslint-disable-next-line max-len
     const channel = guild.channels.cache.find((c) => c.name.toLowerCase() === getRoomName(room.number).toLowerCase());
     if (channel && doc.privateChannel) {
-      await resetChannelOverwrites(doc, channel);
+      await makeLobbyRoomPublic(doc, channel);
     }
 
     if (message && channel && message.channel.id !== channel.id) {
@@ -2096,18 +2233,21 @@ async function mogi(reaction, user, removed = false) {
         if (!removed) {
           const member = await guild.members.fetch(user.id);
           if (!member) return;
+          
+          if (doc.ranked) {
+            const banned = await RankedBan.findOne({ discordId: member.id, guildId: guild.id });
 
-          const banned = await RankedBan.findOne({ discordId: member.id, guildId: guild.id });
-          if (banned && doc.ranked) {
-            // eslint-disable-next-line max-len
-            const lobbiesChannel = guild.channels.cache.find((c) => c.name === config.channels.ranked_lobbies_channel);
-            await lobbiesChannel.createOverwrite(user, { VIEW_CHANNEL: false });
-            errors.push('You are banned.');
+            if (banned) {
+                // eslint-disable-next-line max-len
+                const lobbiesChannel = guild.channels.cache.find((c) => c.name === config.channels.ranked_lobbies_channel);
+                await lobbiesChannel.createOverwrite(user, { VIEW_CHANNEL: false });
+                errors.push('You cannot join ranked lobbies while you are banned from playing ranked.');
+            }
           }
 
           // eslint-disable-next-line max-len
           if (member.isMuted()) {
-            errors.push('You are muted.');
+            errors.push('You cannot join matchmaking lobbies when you are muted.');
           }
 
           const player = await Player.findOne({ discordId: user.id });
@@ -2137,13 +2277,6 @@ async function mogi(reaction, user, removed = false) {
 
           if (doc.anonymous && (!player || !player.region)) {
             errors.push('You need to set your region before you can join an anonymous lobby.');
-          }
-
-          // eslint-disable-next-line max-len
-          const repeatLobby = await Lobby.findOne({ guild: guild.id, players: user.id, _id: { $ne: doc._id } });
-
-          if (repeatLobby) {
-            errors.push('You cannot be in 2 lobbies at the same time.');
           }
 
           // eslint-disable-next-line max-len
@@ -2205,22 +2338,12 @@ async function mogi(reaction, user, removed = false) {
                 players = players.filter((p) => p !== user.id && p !== savedPartner);
                 teamList = teamList.filter((p) => !(Array.isArray(p) && p.includes(user.id)));
               } else {
-                const repeatLobbyPartner = await Lobby.findOne({
-                  guild: guild.id,
-                  players: savedPartner,
-                  _id: { $ne: doc._id },
-                });
-
-                if (repeatLobbyPartner) {
-                  errors.push('Your partner is in another lobby.');
-                }
-
                 if (doc.ranked) {
                   // eslint-disable-next-line max-len
                   const partnerBanned = await RankedBan.findOne({ discordId: savedPartner, guildId: guild.id });
                   if (partnerBanned) {
                     userSavedDuo.delete();
-                    errors.push('Your partner is banned. The duo has been deleted.');
+                    errors.push('You cannot join a duo lobby when your partner is banned from playing ranked. The duo has been deleted.');
                   }
                 }
 
@@ -2313,22 +2436,43 @@ async function mogi(reaction, user, removed = false) {
             }
             doc.teamList = teamList;
           } else if (doc.isWar() && !doc.is1v1()) {
-            const team = await Team.findOne({
+            let team = await Team.findOne({
               guild: guild.id,
               players: user.id,
             });
 
+            /* 
+             * Hack: Pretend a duo is a team
+             *
+             * Doing this will apply the 4 vs. 4 validation to duos which
+             * might not always lead to the desired result but it does the job well enough
+             */
+            if (!team) {
+              const userSavedDuo = await Duo.findOne({
+                guild: guild.id,
+                $or: [{ discord1: user.id }, { discord2: user.id }],
+              });
+
+              if (userSavedDuo) {
+                team = {
+                  guild: userSavedDuo.guild,
+                  players: [userSavedDuo.discord1, userSavedDuo.discord2],
+                  date: userSavedDuo.date
+                };
+              }
+            }
+
             if (team) {
-              if (doc.is3v3() && team.players.length === 4) {
-                errors.push('You cannot join a 3 vs. 3 lobby with a team of 4 players.');
-              }
-
-              if (doc.is4v4() && team.players.length === 3) {
-                errors.push('You cannot join a 4 vs. 4 lobby with a team of 3 players.');
-              }
-
               if (doc.isInsta()) {
                 errors.push('This lobby does not allow premade teams.');
+              }
+
+              if (team.players.length > doc.getTeamSize()) {
+                errors.push('The size of your team is too big for this lobby.');
+              }
+
+              if (doc.hasIncompleteTeams() && !doc.getAvailableTeamSizes().some((s) => s >= team.players.length)) {
+                errors.push('You cannot join this lobby because there are not enough open spots for the size of your team.');
               }
 
               const teamPlayers = team.players;
@@ -2337,23 +2481,13 @@ async function mogi(reaction, user, removed = false) {
                 players = players.filter((p) => !teamPlayers.includes(p));
                 teamList = teamList.filter((p) => !(Array.isArray(p) && p.includes(user.id)));
               } else {
-                const repeatLobbyTeam = await Lobby.findOne({
-                  guild: guild.id,
-                  players: { $in: teamPlayers },
-                  _id: { $ne: doc._id },
-                });
-
-                if (repeatLobbyTeam) {
-                  errors.push('One of your teammates is in another lobby.');
-                }
-
                 if (doc.ranked) {
                   // eslint-disable-next-line max-len
                   const teammateBanned = await RankedBan.findOne({ discordId: teamPlayers, guildId: guild.id });
 
                   if (teammateBanned) {
                     team.delete();
-                    errors.push('One of your teammates is banned. The team has been deleted.');
+                    errors.push('You cannot join a team lobby when one of your teammates is banned from playing ranked. The team has been deleted.');
                   }
                 }
 
@@ -2416,20 +2550,17 @@ async function mogi(reaction, user, removed = false) {
                   errors.push(`The lobby is reserved for <@!${doc.creator}>'s and <@!${doc.reservedTeam}>'s teams.`);
                 }
 
-                let cutoffPlayerCount;
-                if (doc.is4v4()) {
-                  cutoffPlayerCount = 4;
-                } else {
-                  cutoffPlayerCount = 3;
-                }
-
-                if (playersCount > cutoffPlayerCount) {
-                  const soloQueue = players.filter((p) => !doc.teamList.flat().includes(p));
-                  if (doc.teamList.length) {
-                    players = players.filter((p) => !soloQueue.includes(p));
-                  } else {
-                    const soloToKick = soloQueue.slice(cutoffPlayerCount);
-                    players = players.filter((p) => !soloToKick.includes(p));
+                if (!doc.hasIncompleteTeams()) {
+                  const cutoffPlayerCount = doc.getTeamSize();
+  
+                  if (playersCount > cutoffPlayerCount) {
+                    const soloQueue = players.filter((p) => !doc.teamList.flat().includes(p));
+                    if (doc.teamList.length) {
+                      players = players.filter((p) => !soloQueue.includes(p));
+                    } else {
+                      const soloToKick = soloQueue.slice(cutoffPlayerCount);
+                      players = players.filter((p) => !soloToKick.includes(p));
+                    }
                   }
                 }
 
@@ -2557,7 +2688,7 @@ client.on('messageDelete', async (message) => {
           }
 
           if (doc.privateChannel) {
-            resetChannelOverwrites(doc, channel).then();
+            makeLobbyRoomPublic(doc, channel).then();
           }
         }
 

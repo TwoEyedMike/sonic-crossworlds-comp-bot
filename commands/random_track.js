@@ -1,5 +1,6 @@
 const fs = require('fs');
 const config = require('../config');
+const getRandomArrayElement = require('../utils/getRandomArrayElement');
 
 module.exports = {
   name: 'rng',
@@ -69,7 +70,7 @@ module.exports = {
           const randomTracks = [];
 
           for (let i = 0; i < number; i += 1) {
-            const randomTrack = tracks.random();
+            const randomTrack = getRandomArrayElement(tracks);
             const index = tracks.findIndex((t) => t === randomTrack);
 
             tracks.splice(index, 1);

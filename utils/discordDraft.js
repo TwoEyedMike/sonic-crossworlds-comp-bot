@@ -1,4 +1,6 @@
 const config = require('../config');
+const shuffleArray = require('./shuffleArray');
+const getRandomArrayElement = require('../utils/getRandomArrayElement');
 
 const TRACK_DRAGON_MINES = 'Dragon Mines';
 const TRACK_HYPER_SPACEWAY = 'Hyper Spaceway';
@@ -55,7 +57,7 @@ async function getTrackSelection(channel, user, excludedTracks, phase, draftOpti
   try {
     trackType = await channel.awaitMenuChoice('Please select a track pool.', user.id, trackTypes, 1);
   } catch (e) {
-    trackType = trackTypes.map((t) => t.key).random();
+    trackType = getRandomArrayElement(trackTypes.map((t) => t.key));
   }
 
   // eslint-disable-next-line global-require,import/no-dynamic-require
@@ -89,7 +91,7 @@ async function getTrackSelection(channel, user, excludedTracks, phase, draftOpti
   try {
     track = channel.awaitMenuChoice('Please select a track.', user.id, trackOptions, 1);
   } catch (e) {
-    track = trackList.random();
+    track = getRandomArrayElement(trackList);
   }
 
   alertMessage.delete();
@@ -137,7 +139,7 @@ async function discordDraft(channel, mentions, type, bans, picks, options) {
   options.showDraftLog = options.showDraftLog || false;
 
   /* Make sure that ban and pick order have the same initial value */
-  const shuffledPlayers = mentions.shuffle().reverse();
+  const shuffledPlayers = shuffleArray(mentions).reverse();
 
   let banPlayerList = [];
   let pickPlayerList = [];
