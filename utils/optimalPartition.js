@@ -1,11 +1,10 @@
 /**
  * Array partitioning with brute force selecting optimal partition (3 vs. 3)
  * @param objects
- * @param partitionSize
  * @param valueKey
  * @returns Object
  */
-function optimalPartition3(objects, partitionSize, valueKey) {
+function optimalPartition3(objects, valueKey) {
   const result = {
     A: [],
     B: [],
@@ -78,11 +77,10 @@ module.exports = optimalPartition3;
 /**
  * Array partitioning with brute force selecting optimal partition (4 vs. 4)
  * @param objects
- * @param partitionSize
  * @param valueKey
  * @returns Object
  */
-function optimalPartition4(objects, partitionSize, valueKey) {
+function optimalPartition4(objects, valueKey) {
   const result = {
     A: [],
     B: [],

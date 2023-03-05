@@ -51,6 +51,7 @@ const generateTemplate = require('../utils/generateTemplate');
 const generateTracks = require('../utils/generateTracks');
 const getConfigValue = require('../utils/getConfigValue');
 const getLorenziBoardData = require('../utils/getLorenziBoardData');
+const greedyPartition = require('../utils/greedyPartition');
 const shuffleArray = require('../utils/shuffleArray');
 
 const {
@@ -733,9 +734,9 @@ async function createBalancedTeams(doc) {
       let result;
 
       if (!doc.is4v4()) {
-        result = optimalPartition3(playerRanks, doc.getTeamSize(), 'rank');
+        result = optimalPartition3(playerRanks, 'rank');
       } else {
-        result = optimalPartition4(playerRanks, doc.getTeamSize(), 'rank');
+        result = optimalPartition4(playerRanks, 'rank');
       }
 
       const playersA = result.A.map((a) => a.discordId);
@@ -872,17 +873,16 @@ async function setupTournamentRound(doc, roomChannel) {
 
   if (doc.isSolos()) {
     const lobbyCount = doc.players.length / doc.getDefaultPlayerCount();
-    const shuffledPlayers = shuffleArray(doc.players);
+
+    /* Attempt MMR balancing */
+    const playerRanks = await getPlayerRanks(doc);
+    const distributedPlayers = greedyPartition(playerRanks, lobbyCount, doc.getDefaultPlayerCount(), 'rank');
+
     const lobbyData = [];
 
     // eslint-disable-next-line no-plusplus
     for (let i = 1; i <= lobbyCount; i++) {
-      const players = [];
-
-      // eslint-disable-next-line no-plusplus
-      for (let x = 1; x <= doc.getDefaultPlayerCount(); x++) {
-        players.push(shuffledPlayers.shift());
-      }
+      const players = distributedPlayers[i - 1].map((d) => d.discordId);
 
       const [PSNs, templateUrl, template] = await generateTemplate(players, doc);
 
