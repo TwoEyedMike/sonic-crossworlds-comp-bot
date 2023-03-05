@@ -2343,7 +2343,7 @@ async function mogi(reaction, user, removed = false) {
                   const partnerBanned = await RankedBan.findOne({ discordId: savedPartner, guildId: guild.id });
                   if (partnerBanned) {
                     userSavedDuo.delete();
-                    errors.push('You cannot join a duo lobby when you partner is banned from playing ranked. The duo has been deleted.');
+                    errors.push('You cannot join a duo lobby when your partner is banned from playing ranked. The duo has been deleted.');
                   }
                 }
 
