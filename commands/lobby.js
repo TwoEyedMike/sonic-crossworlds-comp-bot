@@ -1872,6 +1872,42 @@ module.exports = {
           return message.channel.warn('You don\'t have permissions to do that.');
         }
         break;
+      case 'allow_chat':
+        findLobby(null, message.member.isStaff(), message, (doc, msg) => {
+          if (message.author.id !== doc.creator && !message.member.isStaff()) {
+            return message.channel.warn('Only the lobby creator can use this command.');
+          }
+
+          if (!doc.started) {
+            return message.channel.warn('You can only do this when the lobby has started.');
+          }
+
+          const player = message.mentions.users.first();
+
+          if (!player) {
+            return message.channel.warn('You need to mention a player.');
+          }
+
+          Room.findOne({ lobby: doc.id }).then((room) => {
+            if (!room) {
+              return message.channel.warn('Could not find room.');
+            }
+
+            // eslint-disable-next-line max-len
+            const roomChannel = client.guilds.cache.get(room.guild).channels.cache.find((c) => c.name.toLowerCase() === getRoomName(room.number).toLowerCase());
+            const overwrite = roomChannel.permissionOverwrites.get(player.id);
+            if (overwrite) {
+              return message.channel.warn(`You have already given chat permissions to <@!${player.id}>.`);
+            }
+
+            guild.members.fetch(player.id).then((member) => {
+              roomChannel.createOverwrite(member, { SEND_MESSAGES: true }).then(() => {
+                return message.channel.success(`You have given chat permissions to <@!${player.id}>.`);
+              });
+            });
+          });
+        });
+        break;
       case 'end':
         // eslint-disable-next-line consistent-return
         findLobby(lobbyID, message.member.isStaff(), message, (doc, msg) => {
