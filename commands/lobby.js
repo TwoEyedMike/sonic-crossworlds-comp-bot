@@ -2316,6 +2316,13 @@ async function mogi(reaction, user, removed = false) {
           }
 
           // eslint-disable-next-line max-len
+          const repeatLobby = await Lobby.findOne({ guild: guild.id, players: user.id, _id: { $ne: doc._id }, started: true });
+
+          if (repeatLobby) {
+            errors.push('You are already in a lobby that has been started.');
+          }
+
+          // eslint-disable-next-line max-len
           if (doc.ranked && !doc.locked.$isEmpty() && doc.isSolos() && player.rankedName) {
             const playerRank = await Rank.findOne({ name: player.rankedName });
 
@@ -2374,6 +2381,17 @@ async function mogi(reaction, user, removed = false) {
                 players = players.filter((p) => p !== user.id && p !== savedPartner);
                 teamList = teamList.filter((p) => !(Array.isArray(p) && p.includes(user.id)));
               } else {
+                const repeatLobbyPartner = await Lobby.findOne({
+                  guild: guild.id,
+                  players: savedPartner,
+                  _id: { $ne: doc._id },
+                  started: true
+                });
+
+                if (repeatLobbyPartner) {
+                  errors.push('Your partner is already in a lobby that has been started.');
+                }
+
                 if (doc.ranked) {
                   // eslint-disable-next-line max-len
                   const partnerBanned = await RankedBan.findOne({ discordId: savedPartner, guildId: guild.id });
@@ -2517,6 +2535,17 @@ async function mogi(reaction, user, removed = false) {
                 players = players.filter((p) => !teamPlayers.includes(p));
                 teamList = teamList.filter((p) => !(Array.isArray(p) && p.includes(user.id)));
               } else {
+                const repeatLobbyTeam = await Lobby.findOne({
+                  guild: guild.id,
+                  players: { $in: teamPlayers },
+                  _id: { $ne: doc._id },
+                  started: true
+                });
+
+                if (repeatLobbyTeam) {
+                  errors.push('One of your teammates is already in a lobby that has been started.');
+                }
+
                 if (doc.ranked) {
                   // eslint-disable-next-line max-len
                   const teammateBanned = await RankedBan.findOne({ discordId: teamPlayers, guildId: guild.id });
