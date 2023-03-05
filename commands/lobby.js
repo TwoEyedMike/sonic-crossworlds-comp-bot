@@ -946,12 +946,12 @@ async function makeLobbyRoomPrivate(doc, roomChannel) {
   const roleVerified = await guild.roles.findByName(config.roles.verified_player_role);
   const roleMatchmaking = await guild.roles.findByName(config.roles.matchmaking_role);
 
-  await roomChannel.createOverwrite(roleVerified, { SEND_MESSAGES: false });
-  await roomChannel.createOverwrite(roleMatchmaking, { SEND_MESSAGES: false });
+  await roomChannel.createOverwrite(roleVerified, { VIEW_CHANNEL: true, SEND_MESSAGES: false });
+  await roomChannel.createOverwrite(roleMatchmaking, { VIEW_CHANNEL: true, SEND_MESSAGES: false });
 
   for (const p of doc.players) {
     const member = await guild.members.fetch(p);
-    await roomChannel.createOverwrite(member, { SEND_MESSAGES: true });
+    await roomChannel.createOverwrite(member, { VIEW_CHANNEL: true, SEND_MESSAGES: true });
   }
 }
 
@@ -967,8 +967,8 @@ async function makeLobbyRoomPublic(doc, roomChannel) {
   const roleVerified = await guild.roles.findByName(config.roles.verified_player_role);
   const roleMatchmaking = await guild.roles.findByName(config.roles.matchmaking_role);
 
-  await roomChannel.createOverwrite(roleVerified, { SEND_MESSAGES: true });
-  await roomChannel.createOverwrite(roleMatchmaking, { SEND_MESSAGES: true });
+  await roomChannel.createOverwrite(roleVerified, { VIEW_CHANNEL: true, SEND_MESSAGES: true });
+  await roomChannel.createOverwrite(roleMatchmaking, { VIEW_CHANNEL: true, SEND_MESSAGES: true });
 
   for (const p of doc.players) {
     const overwrite = roomChannel.permissionOverwrites.get(p);

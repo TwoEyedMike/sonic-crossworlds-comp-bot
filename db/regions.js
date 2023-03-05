@@ -370,5 +370,7 @@ module.exports.regions = [
     default: true,
     rankedEnabled: true,
     profileEnabled: false,
+    nearbyRegions: [],
+    countries: []
   },
 ];
