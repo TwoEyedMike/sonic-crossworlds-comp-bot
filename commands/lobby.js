@@ -353,7 +353,7 @@ async function getEmbed(doc, players, tracks, roomChannel) {
   if (roomChannel) {
     roomField = {
       name: ':key: Room',
-      value: `${roomChannel.toString()}${doc.privateChannel ? ' (private)' : ''}`,
+      value: `${roomChannel.toString()}${doc.privateChannel ? ' (read-only)' : ''}`,
       inline: true,
     };
   }
@@ -1713,7 +1713,7 @@ module.exports = {
 
           lobby.anonymous = anonymous;
 
-          let privateChannel = false;
+          let privateChannel = true;
           if (custom.includes(CUSTOM_OPTION_PRIVATE_CHANNEL)) {
             try {
               const buttonId = await message.channel.awaitButtonChoice(
