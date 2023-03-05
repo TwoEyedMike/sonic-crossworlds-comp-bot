@@ -1713,7 +1713,7 @@ module.exports = {
 
           lobby.anonymous = anonymous;
 
-          let privateChannel = false;
+          let privateChannel = true;
           if (custom.includes(CUSTOM_OPTION_PRIVATE_CHANNEL)) {
             try {
               const buttonId = await message.channel.awaitButtonChoice(
