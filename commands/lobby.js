@@ -353,7 +353,7 @@ async function getEmbed(doc, players, tracks, roomChannel) {
   if (roomChannel) {
     roomField = {
       name: ':key: Room',
-      value: `${roomChannel.toString()}${doc.privateChannel ? ' (private)' : ''}`,
+      value: `${roomChannel.toString()}${doc.privateChannel ? ' (read-only)' : ''}`,
       inline: true,
     };
   }
