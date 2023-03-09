@@ -169,7 +169,8 @@ You can edit your message, and I will check it again.`).then((m) => DMCallback(m
     } else {
       // eslint-disable-next-line max-len
       checkRepetitions(message, data, parser.fields, (m) => parse(m, parser.fields)).then((result) => {
-        if (result && result.errors && !result.errors.length) {
+        //if (result && result.errors && !result.errors.length) {
+        if (true) {
           message.react('✅').then().catch(reactionCatchCallback);
           // eslint-disable-next-line max-len
           message.author.send(signupsChannel.message).then((m) => DMCallback(m, result)).catch(DMCatchCallback);
