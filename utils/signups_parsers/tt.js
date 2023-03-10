@@ -3,7 +3,7 @@ module.exports = {
     {
       key: /console/i,
       name: 'console',
-      type: 'plain',
+      type: 'console',
     },
     {
       key: /gamer tag/i,

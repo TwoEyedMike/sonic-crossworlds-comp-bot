@@ -74,7 +74,7 @@ async function checkRepetitions(message, data, fields, parseCallback) {
 
       const tmpData = parseCallback(m);
       fields.forEach((field) => {
-        if (['boolean', 'flag', 'console'].includes(field.type)) return;
+        if (['boolean', 'flag', 'console', 'timeZone'].includes(field.type)) return;
         let key = field.name;
         if (field.type === 'mention') {
           key = `${key}Id`;
@@ -165,7 +165,7 @@ function parse(message, fields) {
           data[field.name] = value.toLowerCase() === 'yes';
           return true;
         case 'console':
-          if (!['PS4', 'Xbox', 'Switch'].includes(value)) return false;
+          if (!['PS4', 'PS5', 'Xbox', 'Switch'].includes(value)) return false;
           data.console = value;
           return true;
         case 'timeZone':
