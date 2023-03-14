@@ -594,13 +594,14 @@ async function getPlayersText(doc) {
     playersText += '**Teams:**\n';
 
     // eslint-disable-next-line guard-for-in
+    let teamNumber = 1;
+
     for (const team of doc.teamList) {
       if (team.length <= 0) {
         // eslint-disable-next-line no-continue
         continue;
       }
 
-      let teamNumber = 1;
       let mmrSum = 0;
 
       // eslint-disable-next-line guard-for-in
@@ -789,6 +790,11 @@ async function createPatchworkTeams(doc) {
     /* Check solo queue for possible matches */
     const soloPlayerFillCount = doc.getTeamSize() - teams[teamA].length;
 
+    if (soloPlayerFillCount <= 0) {
+      patchworkTeams.push([...teams[teamA]]);
+      continue
+    }
+
     if (soloPlayers.length >= soloPlayerFillCount) {
       const randomTeams = [];
       const loops = Math.floor(soloPlayers.length / soloPlayerFillCount);
@@ -870,10 +876,9 @@ async function setupTournamentRound(doc, roomChannel) {
   lobby.mode = LOBBY_MODE_STANDARD;
 
   const tracks = await generateTracks(lobby);
+  const lobbyCount = doc.players.length / doc.getDefaultPlayerCount();
 
   if (doc.isSolos()) {
-    const lobbyCount = doc.players.length / doc.getDefaultPlayerCount();
-
     /* Attempt MMR balancing */
     const playerRanks = await getPlayerRanks(doc);
     const distributedPlayers = greedyPartition(playerRanks, lobbyCount, doc.getDefaultPlayerCount(), 'rank');
@@ -1165,8 +1170,12 @@ ${playersText}`,
 
                     // eslint-disable-next-line no-shadow
                     roomChannel.info('Select a scorekeeper. The scorekeeper can react to this message to make others aware that he is keeping scores. If nobody reacts to this message within 5 minutes the lobby will be ended automatically.').then((m) => {
+                      let reacted = false;
+
                       setTimeout(() => {
-                        roomChannel.info('Don\'t forget to select your scorekeeper because otherwise the lobby will be ended soon.');
+                        if (!reacted) {
+                          roomChannel.info('Don\'t forget to select your scorekeeper because otherwise the lobby will be ended soon.');
+                        }
                       }, 240000);
 
                       m.react('✅');
@@ -1180,6 +1189,7 @@ ${playersText}`,
 
                         m.delete();
                         roomChannel.success(`<@!${user.id}> has volunteered to do scores. Please make sure you keep the lobby updated about mid-match scores.`);
+                        reacted = true;
                       }).catch(() => {
                         // eslint-disable-next-line no-use-before-define
                         deleteLobby(doc, m);
@@ -2047,6 +2057,10 @@ module.exports = {
           }
 
           const forced = message.mentions.users.first();
+          
+          if (!forced) {
+            return message.channel.warn('You need to mention a user.');
+          }
 
           if (doc.started) {
             return message.channel.warn('You cannot force a user into a lobby that has already been started.');
@@ -2389,7 +2403,7 @@ async function mogi(reaction, user, removed = false) {
                 });
 
                 if (repeatLobbyPartner) {
-                  errors.push('Your partner is already in a lobby that has been started.');
+                  errors.push(`Your partner <@!${savedPartner}> is already in a lobby that has been started.`);
                 }
 
                 if (doc.ranked) {
@@ -2397,19 +2411,19 @@ async function mogi(reaction, user, removed = false) {
                   const partnerBanned = await RankedBan.findOne({ discordId: savedPartner, guildId: guild.id });
                   if (partnerBanned) {
                     userSavedDuo.delete();
-                    errors.push('You cannot join a duo lobby when your partner is banned from playing ranked. The duo has been deleted.');
+                    errors.push(`You cannot join a duo lobby when your partner <@!${savedPartner}> is banned from playing ranked. The duo has been deleted.`);
                   }
                 }
 
                 const partner = await Player.findOne({ discordId: savedPartner });
 
                 if (!partner || !partner.rankedName) {
-                  errors.push('Your partner needs to set their ranked name. Example: `!set_ranked_name your_ranked_name`.');
+                  errors.push(`Your partner <@!${savedPartner}> needs to set their ranked name. Example: \`!set_ranked_name your_ranked_name\`.`);
                 }
 
                 if (doc.regions.length > 0) {
                   if (!partner || !partner.region) {
-                    errors.push('Your partner needs to set their region. Use `!set_region` and then follow the bot instructions.');
+                    errors.push(`Your partner <@!${savedPartner}> needs to set their region. Use \`!set_region\` and then follow the bot instructions.`);
                   } else if (!doc.regions.includes(partner.region)) {
                     const lobbyRegions = [];
                     doc.regions.forEach((dr) => {
@@ -2418,12 +2432,12 @@ async function mogi(reaction, user, removed = false) {
                     });
 
                     const partnerRegion = regions.find((r) => r.key === partner.region);
-                    errors.push(`The lobby you are trying to join is locked to ${lobbyRegions.join(', ')} and your partner is from ${partnerRegion.name}.`);
+                    errors.push(`The lobby you are trying to join is locked to ${lobbyRegions.join(', ')} and your partner <@!${savedPartner}> is from ${partnerRegion.name}.`);
                   }
                 }
 
                 if (doc.anonymous && (!partner || !partner.region)) {
-                  errors.push('Your partner needs to set their region before you can join an anonymous lobby.');
+                  errors.push(`Your partner <@!${savedPartner}> needs to set their region before you can join an anonymous lobby.`);
                 }
 
                 if (doc.ranked && !doc.locked.$isEmpty()) {
@@ -2562,12 +2576,12 @@ async function mogi(reaction, user, removed = false) {
                 // eslint-disable-next-line guard-for-in
                 for (const teammate of teammates) {
                   if (!teammate.rankedName) {
-                    errors.push(`Your teammate ${teammate.psn} needs to set their ranked name. Example: \`!set_ranked_name your_ranked_name\`.`);
+                    errors.push(`Your teammate <@!${teammate.discordId}> needs to set their ranked name. Example: \`!set_ranked_name your_ranked_name\`.`);
                   }
 
                   if (doc.regions.length > 0) {
                     if (!teammate.region) {
-                      errors.push(`Your teammate ${teammate.psn} needs to set their region. Use \`!set_region\` and then follow the bot instructions.`);
+                      errors.push(`Your teammate <@!${teammate.discordId}> needs to set their region. Use \`!set_region\` and then follow the bot instructions.`);
                     } else if (!doc.regions.includes(teammate.region)) {
                       const lobbyRegions = [];
                       doc.regions.forEach((dr) => {
@@ -2576,12 +2590,12 @@ async function mogi(reaction, user, removed = false) {
                       });
 
                       const teammateRegion = regions.find((r) => r.key === teammate.region);
-                      errors.push(`The lobby you are trying to join is locked to ${lobbyRegions.join(', ')} and your teammate ${teammate.psn} is from ${teammateRegion.name}.`);
+                      errors.push(`The lobby you are trying to join is locked to ${lobbyRegions.join(', ')} and your teammate <@!${teammate.discordId}> is from ${teammateRegion.name}.`);
                     }
                   }
 
                   if (doc.anonymous && !teammate.region) {
-                    errors.push(`Your teammate ${teammate.psn} needs to set their region before you can join an anonymous lobby.`);
+                    errors.push(`Your teammate <@!${teammate.discordId}> needs to set their region before you can join an anonymous lobby.`);
                   }
 
                   if (doc.ranked && !doc.locked.$isEmpty()) {
@@ -2615,7 +2629,7 @@ async function mogi(reaction, user, removed = false) {
                   errors.push(`The lobby is reserved for <@!${doc.creator}>'s and <@!${doc.reservedTeam}>'s teams.`);
                 }
 
-                if (!doc.hasIncompleteTeams()) {
+                if (!doc.hasIncompleteTeams() && team.players.length === doc.getTeamSize()) {
                   const cutoffPlayerCount = doc.getTeamSize();
   
                   if (playersCount > cutoffPlayerCount) {
@@ -2870,8 +2884,7 @@ function checkRankedBans() {
         const channel = guild.channels.cache.find((c) => c.name === config.channels.ranked_lobbies_channel);
         const permissionOverwrites = channel.permissionOverwrites.get(doc.discordId);
         if (permissionOverwrites) {
-          permissionOverwrites.delete().then(() => {
-          });
+          permissionOverwrites.delete().then(() => {});
         }
 
         doc.delete();

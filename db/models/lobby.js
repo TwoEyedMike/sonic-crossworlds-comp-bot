@@ -405,7 +405,7 @@ Lobby.methods = {
 
     let availableTeamSizes = [this.getTeamSize(), this.getTeamSize()]
 
-    for (team in this.teamList) {
+    for (const team in this.teamList) {
       const teamSize = this.teamList[team].length;
 
       if (availableTeamSizes[0] >= teamSize) {
@@ -419,6 +419,21 @@ Lobby.methods = {
         }
       }
     }
+
+    for (const i = 0; i < this.getSoloPlayers().length; i += 1) {
+      if (availableTeamSizes[0] >= 1) {
+        availableTeamSizes[0] -= 1;
+      } else {
+        if (availableTeamSizes[1] >= 1) {
+          availableTeamSizes[1] -= 1;
+        } else {
+          console.log('Encountered an invalid team constellation.');
+          return full;          
+        }
+      }
+    }
+
+    console.log(availableTeamSizes);
 
     return availableTeamSizes;
   },

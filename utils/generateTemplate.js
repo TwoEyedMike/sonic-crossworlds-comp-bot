@@ -161,7 +161,11 @@ async function generateTemplate(players, doc) {
       mmr = parseInt(rank[doc.type].rank, 10);
     }
 
-    PSNs.push(`${x.psn.replace('_', '\\_')} [${mmr}]`);
+    if (!x.psn) {
+      PSNs.push(`- [${mmr}]`)
+    } else {
+      PSNs.push(`${x.psn.replace('_', '\\_')} [${mmr}]`);
+    }
   }
 
   return [PSNs, `https://gb.hlorenzi.com/table?data=${encodedData}`, template];
