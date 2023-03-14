@@ -428,12 +428,10 @@ Lobby.methods = {
           availableTeamSizes[1] -= 1;
         } else {
           console.log('Encountered an invalid team constellation.');
-          return full;          
+          return full;
         }
       }
     }
-
-    console.log(availableTeamSizes);
 
     return availableTeamSizes;
   },
