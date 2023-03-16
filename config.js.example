@@ -1,5 +1,6 @@
 module.exports = {
   bot_user_id: '',
+  enable_debug: false,
   prefix: '!',
   db_url: '',
   owner: '',

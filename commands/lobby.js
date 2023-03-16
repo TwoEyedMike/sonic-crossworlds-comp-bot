@@ -2052,6 +2052,10 @@ module.exports = {
             return message.channel.warn('You need to be a staff member to use this command.');
           }
 
+          if (!config.enable_debug) {
+            return message.channel.warn('This is a debug feature. You cannot use it in production.');
+          }
+
           if (!doc) {
             return message.channel.warn('There is no lobby with this ID.');
           }

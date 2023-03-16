@@ -11,10 +11,11 @@ const {
  * @param options
  * @param maxValues
  * @param defaultValue
+ * @param timeout
  * @return Promise
  */
 // eslint-disable-next-line func-names,max-len
-TextChannel.prototype.awaitMenuChoice = async function (question, userID, options, maxValues, defaultValue) {
+TextChannel.prototype.awaitMenuChoice = async function (question, userID, options, maxValues, defaultValue, timeout = 60) {
   const menu = new MessageMenu()
     .setID('select')
     .setPlaceholder('Choose ...')
@@ -45,7 +46,7 @@ TextChannel.prototype.awaitMenuChoice = async function (question, userID, option
   const message = await this.info(question, [], [], [menu]);
 
   const filterFunction = (m) => m.clicker.user.id === userID;
-  const filterOptions = { max: 1, time: 60000, errors: ['time'] };
+  const filterOptions = { max: 1, time: timeout * 1000, errors: ['time'] };
 
   let values;
 

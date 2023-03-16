@@ -41,6 +41,7 @@ const trackTypes = [
  * @param excludedTracks
  * @param phase
  * @param draftOptions
+ * @param timeout
  * @returns {Promise<string>}
  */
 async function getTrackSelection(channel, user, excludedTracks, phase, draftOptions) {
@@ -51,12 +52,10 @@ async function getTrackSelection(channel, user, excludedTracks, phase, draftOpti
     action = 'picking';
   }
 
-  const alertMessage = await channel.info(`<@!${user.id}> is now ${action} a track!`);
-  let trackType;
+  const alertMessage = await channel.info(`You are now ${action} a track!`, [user.id]);
+  let trackType = await channel.awaitMenuChoice('Please select a track pool.', user.id, trackTypes, 1, null, draftOptions.pickTimeout);
 
-  try {
-    trackType = await channel.awaitMenuChoice('Please select a track pool.', user.id, trackTypes, 1);
-  } catch (e) {
+  if (trackType === null) {
     trackType = getRandomArrayElement(trackTypes.map((t) => t.key));
   }
 
@@ -86,11 +85,9 @@ async function getTrackSelection(channel, user, excludedTracks, phase, draftOpti
     }
   });
 
-  let track;
+  let track = await channel.awaitMenuChoice('Please select a track.', user.id, trackOptions, 1, null, draftOptions.pickTimeout);
 
-  try {
-    track = channel.awaitMenuChoice('Please select a track.', user.id, trackOptions, 1);
-  } catch (e) {
+  if (track === null) {
     track = getRandomArrayElement(trackList);
   }
 
@@ -137,6 +134,8 @@ async function discordDraft(channel, mentions, type, bans, picks, options) {
   options.enableRetroStadium = options.enableRetroStadium || false;
   options.enableSpyroCircuit = options.enableSpyroCircuit || false;
   options.showDraftLog = options.showDraftLog || false;
+  options.pickTimeout = options.pickTimeout || 10;
+  options.pinTrackList = options.pinTrackList || false;
 
   /* Make sure that ban and pick order have the same initial value */
   const shuffledPlayers = shuffleArray(mentions).reverse();
@@ -190,7 +189,7 @@ async function discordDraft(channel, mentions, type, bans, picks, options) {
         banPlayerList[x],
         bannedTracks.map(mapFunction),
         PHASE_BAN,
-        options,
+        options
       );
 
       bannedTracks.push({
@@ -212,7 +211,7 @@ async function discordDraft(channel, mentions, type, bans, picks, options) {
         pickPlayerList[x],
         bannedTracks.map(mapFunction).concat(pickedTracks.map(mapFunction)),
         PHASE_PICK,
-        options,
+        options
       );
 
       pickedTracks.push({
@@ -250,7 +249,11 @@ async function discordDraft(channel, mentions, type, bans, picks, options) {
     logMessage.delete();
   }
 
-  channel.send({ embed });
+  channel.send({ embed }).then((m) => {
+    if (options.pinTrackList) {
+      m.pin();
+    }
+  });
 }
 
 module.exports.discordDraft = discordDraft;

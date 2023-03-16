@@ -928,7 +928,7 @@ Lobby.methods = {
       TRACK_OPTION_POOLS,
     ];
 
-    if (![RACE_ITEMLESS_FFA, BATTLE_FFA].includes(this.type)) {
+    if (![RACE_ITEMLESS_FFA, BATTLE_1V1, BATTLE_FFA].includes(this.type)) {
       availableTrackOptions.push(TRACK_OPTION_DRAFT);
     }
 
@@ -1149,16 +1149,12 @@ Lobby.methods = {
     const promises = [];
     const playersToFetch = [];
 
-    if (this.isFFA()) {
-      playersToFetch.push(this.players);
-    } else if (this.isDuos()) {
-      playersToFetch.push(getRandomArrayElement(this.teamList[0]));
-      playersToFetch.push(getRandomArrayElement(this.teamList[1]));
-      playersToFetch.push(getRandomArrayElement(this.teamList[2]));
-      playersToFetch.push(getRandomArrayElement(this.teamList[3]));
-    } else if (this.isWar()) {
-      playersToFetch.push(getRandomArrayElement(this.teamList[0]));
-      playersToFetch.push(getRandomArrayElement(this.teamList[1]));
+    if (this.isSolos()) {
+      playersToFetch.push(...this.players);
+    } else {
+      for (const team in this.teamList) {
+        playersToFetch.push(getRandomArrayElement(this.teamList[team]));
+      }
     }
 
     playersToFetch.forEach((p) => {
@@ -1173,6 +1169,8 @@ Lobby.methods = {
         enableRetroStadium: false,
         enableSpyroCircuit: !bannedTracks.includes(TRACK_SPYRO_CIRCUIT),
         showDraftLog: true,
+        pickTimeout: 10,
+        pinTrackList: true
       };
 
       switch (this.type) {
@@ -1187,6 +1185,9 @@ Lobby.methods = {
           break;
         case RACE_ITEMS_4V4:
           createDraft(channel, '0', teams, captains);
+          break;
+        case RACE_ITEMLESS_FFA:
+          discordDraft(channel, captains, TYPE_FFA, 0, this.trackCount, options).then();
           break;
         case RACE_ITEMLESS_DUOS:
           discordDraft(channel, captains, TYPE_DUOS, 0, this.trackCount, options).then();
