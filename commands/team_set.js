@@ -6,9 +6,9 @@ const { RACE_3V3, RACE_4V4 } = require('../db/models/lobby');
 
 module.exports = {
   name: 'team_set',
-  description: 'Set your team for Ranked 3 vs. 3 and ranked 4 vs. 4.',
+  description: 'Set your team for ranked 3 vs. 3 / 4 vs. 4.',
   guildOnly: true,
-  aliases: ['set_team', 'team_s'],
+  aliases: ['set_team'],
   cooldown: 15,
   // eslint-disable-next-line consistent-return
   async execute(message) {

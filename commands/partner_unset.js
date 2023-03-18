@@ -1,12 +1,17 @@
+const {
+  Lobby,
+  RACE_ITEMLESS_DUOS,
+  BATTLE_DUOS,
+  INSTA_DUOS
+} = require('../db/models/lobby');
 const { Duo } = require('../db/models/duo');
-const { Lobby } = require('../db/models/lobby');
 const { RACE_DUOS } = require('../db/models/lobby');
 
 module.exports = {
   name: 'partner_unset',
   description: 'Unset your partner for Ranked Duos.',
   guildOnly: true,
-  aliases: ['unset_partner', 'partner_remove', 'partner_u', 'divorce'],
+  aliases: ['unset_partner', 'partner_remove', 'divorce', 'remove_partner'],
   cooldown: 15,
   // eslint-disable-next-line consistent-return
   async execute(message) {
@@ -16,7 +21,7 @@ module.exports = {
     const authorSavedDuo = await Duo.findOne({ guild: guild.id, $or: [{ discord1: author.id }, { discord2: author.id }] });
     if (authorSavedDuo) {
       const lobby = await Lobby.findOne({
-        type: RACE_DUOS,
+        type: { $in: [RACE_DUOS, RACE_ITEMLESS_DUOS, BATTLE_DUOS, INSTA_DUOS] },
         players: { $in: [authorSavedDuo.discord1, authorSavedDuo.discord2] },
       });
 
