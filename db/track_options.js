@@ -6,6 +6,7 @@ module.exports.trackOptions = [
     emote: null,
     default: false,
     rankedEnabled: true,
+    hasDefinitionFile: true,
   },
   {
     key: 'pools',
@@ -14,6 +15,7 @@ module.exports.trackOptions = [
     emote: null,
     default: true,
     rankedEnabled: true,
+    hasDefinitionFile: true,
   },
   {
     key: 'draft',
@@ -22,6 +24,7 @@ module.exports.trackOptions = [
     emote: null,
     default: false,
     rankedEnabled: true,
+    hasDefinitionFile: false,
   },
   {
     key: 'bonus',
@@ -30,6 +33,7 @@ module.exports.trackOptions = [
     emote: null,
     default: false,
     rankedEnabled: true,
+    hasDefinitionFile: true,
   },
   {
     key: 'blue_fire',
@@ -46,6 +50,7 @@ module.exports.trackOptions = [
     emote: null,
     default: false,
     rankedEnabled: true,
+    hasDefinitionFile: true,
   },
   {
     key: 'ctr',
@@ -54,6 +59,7 @@ module.exports.trackOptions = [
     emote: null,
     default: false,
     rankedEnabled: true,
+    hasDefinitionFile: true,
   },
   {
     key: 'day_time',
@@ -62,6 +68,7 @@ module.exports.trackOptions = [
     emote: null,
     default: false,
     rankedEnabled: true,
+    hasDefinitionFile: true,
   },
   {
     key: 'long',
@@ -70,6 +77,7 @@ module.exports.trackOptions = [
     emote: null,
     default: false,
     rankedEnabled: true,
+    hasDefinitionFile: true,
   },
   {
     key: 'nature',
@@ -78,6 +86,7 @@ module.exports.trackOptions = [
     emote: null,
     default: false,
     rankedEnabled: true,
+    hasDefinitionFile: true,
   },
   {
     key: 'night_time',
@@ -86,6 +95,7 @@ module.exports.trackOptions = [
     emote: null,
     default: false,
     rankedEnabled: true,
+    hasDefinitionFile: true,
   },
   {
     key: 'polswid',
@@ -94,6 +104,7 @@ module.exports.trackOptions = [
     emote: null,
     default: false,
     rankedEnabled: true,
+    hasDefinitionFile: true,
   },
   {
     key: 'road',
@@ -102,6 +113,7 @@ module.exports.trackOptions = [
     emote: null,
     default: false,
     rankedEnabled: true,
+    hasDefinitionFile: true,
   },
   {
     key: 'sacred_fire',
@@ -110,6 +122,7 @@ module.exports.trackOptions = [
     emote: null,
     default: false,
     rankedEnabled: true,
+    hasDefinitionFile: true,
   },
   {
     key: 'small',
@@ -118,6 +131,7 @@ module.exports.trackOptions = [
     emote: null,
     default: false,
     rankedEnabled: true,
+    hasDefinitionFile: true,
   },
   {
     key: 'static',
@@ -126,5 +140,24 @@ module.exports.trackOptions = [
     emote: null,
     default: false,
     rankedEnabled: true,
+    hasDefinitionFile: true,
   },
+  {
+    key: 'popular',
+    name: 'Popular Tracks',
+    description: 'This list contains the most popular tracks of the server.',
+    emote: null,
+    default: false,
+    rankedEnabled: true,
+    hasDefinitionFile: false,
+  },
+  {
+    key: 'unpopular',
+    name: 'Unpopular Tracks',
+    description: 'This list contains the least popular tracks of the server.',
+    emote: null,
+    default: false,
+    rankedEnabled: true,
+    hasDefinitionFile: false,
+  }
 ];

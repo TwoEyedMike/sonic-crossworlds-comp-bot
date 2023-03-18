@@ -115,6 +115,8 @@ const TRACK_OPTION_ROAD = 'road';
 const TRACK_OPTION_SACRED_FIRE = 'sacred_fire';
 const TRACK_OPTION_SMALL = 'small';
 const TRACK_OPTION_STATIC = 'static';
+const TRACK_OPTION_POPULAR = 'popular';
+const TRACK_OPTION_UNPOPULAR = 'unpopular';
 const TRACK_DRAGON_MINES = 'Dragon Mines';
 const TRACK_HYPER_SPACEWAY = 'Hyper Spaceway';
 const TRACK_RETRO_STADIUM = 'Retro Stadium';
@@ -172,6 +174,8 @@ module.exports.TRACK_OPTION_ROAD = TRACK_OPTION_ROAD;
 module.exports.TRACK_OPTION_SACRED_FIRE = TRACK_OPTION_SACRED_FIRE;
 module.exports.TRACK_OPTION_SMALL = TRACK_OPTION_SMALL;
 module.exports.TRACK_OPTION_STATIC = TRACK_OPTION_STATIC;
+module.exports.TRACK_OPTION_POPULAR = TRACK_OPTION_POPULAR;
+module.exports.TRACK_OPTION_UNPOPULAR = TRACK_OPTION_UNPOPULAR;
 module.exports.LOBBY_MODE_STANDARD = LOBBY_MODE_STANDARD;
 module.exports.LOBBY_MODE_TOURNAMENT = LOBBY_MODE_TOURNAMENT;
 module.exports.CUSTOM_OPTION_MODE = CUSTOM_OPTION_MODE;
@@ -952,6 +956,8 @@ Lobby.methods = {
         TRACK_OPTION_SACRED_FIRE,
         TRACK_OPTION_SMALL,
         TRACK_OPTION_STATIC,
+        TRACK_OPTION_POPULAR,
+        TRACK_OPTION_UNPOPULAR
       ]);
     }
 
@@ -1052,7 +1058,9 @@ Lobby.methods = {
     return enabled[this.type];
   },
   getTrackPools() {
-    if (this.trackCount <= 0 || this.isTournament() || this.trackOption === TRACK_OPTION_DRAFT) {
+    const trackOption = trackOptions.find((t) => t.key === this.trackOption);
+
+    if (this.trackCount <= 0 || this.isTournament() || !trackOption.hasDefinitionFile) {
       return [];
     }
 
