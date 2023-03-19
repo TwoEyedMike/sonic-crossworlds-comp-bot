@@ -2,7 +2,7 @@ const config = require('../config');
 
 module.exports = {
   name: 'help',
-  description: 'help',
+  description: 'Get help with commands',
   cooldown: 30,
   execute(message) {
     const fields = [];

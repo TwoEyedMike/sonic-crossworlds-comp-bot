@@ -4,7 +4,7 @@ const { regions } = require('../db/regions');
 module.exports = {
   name: 'assign_player_regions',
   guildOnly: true,
-  noHelp: true,
+  description: 'Assigns players to a region based on their country flag.',
   permissions: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
   // eslint-disable-next-line consistent-return
   async execute(message) {

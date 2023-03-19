@@ -17,6 +17,7 @@ const clean = (text) => {
 module.exports = {
   name: 'exec',
   guildOnly: true,
+  permissions: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
   execute(message, args) {
     if (message.author.id !== config.owner) {
       return message.channel.warn('You cannot use this command.');

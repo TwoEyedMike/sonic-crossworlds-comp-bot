@@ -5,6 +5,7 @@ const config = require('../config');
 
 module.exports = {
   name: 'psn',
+  description: 'Show information about CTR for a PSN ID.',
   guildOnly: true,
   args: true,
   aliases: ['psn_profile'],

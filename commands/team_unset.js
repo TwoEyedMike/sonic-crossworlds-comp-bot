@@ -12,7 +12,7 @@ const { RACE_3V3, RACE_4V4 } = require('../db/models/lobby');
 
 module.exports = {
   name: 'team_unset',
-  description: 'Unset your team for Ranked 4v4.',
+  description: 'Unset your team for ranked 3 vs. 3 / 4 vs. 4.',
   guildOnly: true,
   aliases: ['unset_team'],
   cooldown: 15,

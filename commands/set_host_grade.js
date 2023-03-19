@@ -3,6 +3,7 @@ const { hostGrades } = require('../db/host_grades');
 
 module.exports = {
   name: 'set_host_grade',
+  description: 'Set a user\'s host grade.',
   guildOnly: true,
   permissions: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
   execute(message) {

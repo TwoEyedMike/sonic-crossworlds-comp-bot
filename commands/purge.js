@@ -2,7 +2,7 @@ module.exports = {
   name: 'purge',
   description: 'Delete last X messages in current channel.',
   guildOnly: true,
-  permissions: ['MANAGE_MESSAGES'],
+  permissions: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
   args: true,
   usage: 'purge [X]',
   // eslint-disable-next-line consistent-return

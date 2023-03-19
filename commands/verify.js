@@ -2,7 +2,7 @@ const config = require('../config');
 
 module.exports = {
   name: 'verify',
-  description: 'Player verification',
+  description: 'Verify a player.',
   guildOnly: true,
   permissions: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
   args: true,

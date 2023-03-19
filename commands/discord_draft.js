@@ -14,6 +14,7 @@ module.exports = {
   args: true,
   guildOnly: true,
   cooldown: 30,
+  description: 'Discord based drafting with 2, 4 or 8 players.',
   aliases: ['ddraft', 'better_draft'],
   usage: '@Player1 @Player2 ...',
   // eslint-disable-next-line consistent-return

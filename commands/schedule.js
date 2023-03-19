@@ -6,7 +6,7 @@ module.exports = {
   name: 'schedule',
   description: 'Schedule bot posts.',
   guildOnly: true,
-  permissions: ['MANAGE_ROLES'],
+  permissions: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
   execute(message, args) {
     const newUsage = 'To add a new one: `!schedule add #channel 2020-01-01 00:00 CET`';
 

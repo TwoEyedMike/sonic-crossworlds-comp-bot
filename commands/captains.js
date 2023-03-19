@@ -5,7 +5,6 @@ module.exports = {
   name: 'captains',
   description: 'List all clan captains',
   cooldown: 15,
-  noHelp: true,
   guildOnly: true,
   execute(message) {
     Clan.find().then((clans) => {

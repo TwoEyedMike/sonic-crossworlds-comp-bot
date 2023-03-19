@@ -1,6 +1,7 @@
 module.exports = {
   name: 'livestreams',
   guildOnly: true,
+  description: 'List all active CTR livestreams.',
   cooldown: 30,
   execute(message) {
     const members = message.channel.guild.members.cache;

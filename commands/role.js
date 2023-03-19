@@ -4,7 +4,7 @@ module.exports = {
   args: true,
   usage: '<role> [remove]\n<users>',
   guildOnly: true,
-  permissions: ['MANAGE_ROLES'],
+  permissions: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
   // eslint-disable-next-line consistent-return
   execute(message, args) {
     let roleName = args.join(' ');
