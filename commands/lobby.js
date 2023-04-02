@@ -3049,7 +3049,7 @@ client.on('guildMemberAdd', (member) => {
   RankedBan.findOne({ discordId: user.id, guildId: guild.id, bannedTill: { $gte: now } }).then((doc) => {
     if (doc) {
       // eslint-disable-next-line max-len
-      const lobbiesChannel = guild.channels.cache.find((c) => c.name === config.channels.ranked_lobbies_channel);
+      const lobbiesChannel = guild.channels.cache.find((c) => c.name.toLowerCase() === config.channels.ranked_lobbies_channel.toLowerCase());
       lobbiesChannel.createOverwrite(user, { VIEW_CHANNEL: false }).then(() => {
         guild.log(`<@${user.id}> was ranked banned on rejoin.`);
       });

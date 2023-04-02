@@ -30,6 +30,7 @@ module.exports = {
             }
 
             p.delete();
+            console.log(`Removed member with ID ${p.discordId} ...`);
           }
         });
       });

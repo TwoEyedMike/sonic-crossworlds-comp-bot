@@ -1,11 +1,16 @@
 const {
   Lobby,
+  RACE_ITEMS_DUOS,
+  RACE_ITEMS_3V3,
+  RACE_ITEMS_4V4,
   RACE_ITEMLESS_DUOS,
+  RACE_ITEMLESS_3V3,
+  RACE_ITEMLESS_4V4,
   BATTLE_DUOS,
-  INSTA_DUOS
+  BATTLE_3V3,
+  BATTLE_4V4,
 } = require('../db/models/lobby');
 const { Duo } = require('../db/models/duo');
-const { RACE_DUOS } = require('../db/models/lobby');
 
 module.exports = {
   name: 'partner_unset',
@@ -21,7 +26,17 @@ module.exports = {
     const authorSavedDuo = await Duo.findOne({ guild: guild.id, $or: [{ discord1: author.id }, { discord2: author.id }] });
     if (authorSavedDuo) {
       const lobby = await Lobby.findOne({
-        type: { $in: [RACE_DUOS, RACE_ITEMLESS_DUOS, BATTLE_DUOS, INSTA_DUOS] },
+        type: { $in: [
+          RACE_ITEMS_DUOS, 
+          RACE_ITEMS_3V3, 
+          RACE_ITEMS_4V4, 
+          RACE_ITEMLESS_DUOS, 
+          RACE_ITEMLESS_3V3, 
+          RACE_ITEMLESS_4V4, 
+          BATTLE_DUOS, 
+          BATTLE_3V3, 
+          BATTLE_4V4
+        ]},
         players: { $in: [authorSavedDuo.discord1, authorSavedDuo.discord2] },
       });
 

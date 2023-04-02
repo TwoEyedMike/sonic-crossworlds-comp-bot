@@ -53,42 +53,71 @@ async function getTrackSelection(channel, user, excludedTracks, phase, draftOpti
   }
 
   const alertMessage = await channel.info(`You are now ${action} a track!`, [user.id]);
-  let trackType = await channel.awaitMenuChoice('Please select a track pool.', user.id, trackTypes, 1, null, draftOptions.pickTimeout);
+  const pickStart = parseInt(Date.now() / 1000);
 
-  if (trackType === null) {
-    trackType = getRandomArrayElement(trackTypes.map((t) => t.key));
-  }
+  let trackType = null;
+  let track = null;
 
-  // eslint-disable-next-line global-require,import/no-dynamic-require
-  const tracks = require(`../db/pools/${trackType}.js`);
+  while (true) {
+    const now = parseInt(Date.now() / 1000);
+    const remainingTime = draftOptions.pickTimeout - (now - pickStart);
 
-  const trackList = tracks[0];
-  trackList.forEach((t, i) => {
-    if (
-      (t === TRACK_DRAGON_MINES && !draftOptions.enableDragonMines)
-      || (t === TRACK_HYPER_SPACEWAY && !draftOptions.enableHyperSpaceway)
-      || (t === TRACK_SPYRO_CIRCUIT && !draftOptions.enableSpyroCircuit)
-      || (t === TRACK_RETRO_STADIUM && !draftOptions.enableRetroStadium)
-    ) {
-      trackList.splice(i, 1);
+    if (remainingTime > 0) {
+      trackType = await channel.awaitMenuChoice(`Please select a track pool. You have ${remainingTime} second(s) left.`, user.id, trackTypes, 1, null, remainingTime);
+    
+      if (trackType === null) {
+        trackType = getRandomArrayElement(trackTypes.map((t) => t.key));
+      }
+    } else {
+      trackType = getRandomArrayElement(trackTypes.map((t) => t.key));
     }
-  });
+  
+    // eslint-disable-next-line global-require,import/no-dynamic-require
+    const tracks = require(`../db/pools/${trackType}.js`);
+  
+    const trackList = tracks[0];
+    trackList.forEach((t, i) => {
+      if (
+        (t === TRACK_DRAGON_MINES && !draftOptions.enableDragonMines)
+        || (t === TRACK_HYPER_SPACEWAY && !draftOptions.enableHyperSpaceway)
+        || (t === TRACK_SPYRO_CIRCUIT && !draftOptions.enableSpyroCircuit)
+        || (t === TRACK_RETRO_STADIUM && !draftOptions.enableRetroStadium)
+      ) {
+        trackList.splice(i, 1);
+      }
+    });
+  
+    const trackOptions = [{
+      key: 'back',
+      name: 'Go Back',
+      emote: '⬅️'
+    }];
+  
+    trackList.forEach((tr) => {
+      if (!excludedTracks.includes(tr)) {
+        trackOptions.push({
+          key: tr,
+          name: tr,
+        });
+      }
+    });
 
-  const trackOptions = [];
+    if (remainingTime > 0) {
+      track = await channel.awaitMenuChoice(`Please select a track. You have ${remainingTime} second(s) left.`, user.id, trackOptions, 1, null, remainingTime);
 
-  trackList.forEach((tr) => {
-    if (!excludedTracks.includes(tr)) {
-      trackOptions.push({
-        key: tr,
-        name: tr,
-      });
+      if (track === 'back') {
+        continue;
+      }
+
+      if (track === null) {
+        track = getRandomArrayElement(trackList);
+      }
+
+      break;
+    } else {
+      track = getRandomArrayElement(trackList);
+      break;
     }
-  });
-
-  let track = await channel.awaitMenuChoice('Please select a track.', user.id, trackOptions, 1, null, draftOptions.pickTimeout);
-
-  if (track === null) {
-    track = getRandomArrayElement(trackList);
   }
 
   alertMessage.delete();
@@ -134,7 +163,7 @@ async function discordDraft(channel, mentions, type, bans, picks, options) {
   options.enableRetroStadium = options.enableRetroStadium || false;
   options.enableSpyroCircuit = options.enableSpyroCircuit || false;
   options.showDraftLog = options.showDraftLog || false;
-  options.pickTimeout = options.pickTimeout || 10;
+  options.pickTimeout = options.pickTimeout || 60;
   options.pinTrackList = options.pinTrackList || false;
 
   /* Make sure that ban and pick order have the same initial value */

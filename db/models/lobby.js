@@ -961,11 +961,6 @@ Lobby.methods = {
       ]);
     }
 
-    if ((this.isWar() && !this.is1v1()) || (this.isRacing() && (this.isFFA() || this.isDuos()))) {
-      // Drafting for wars, duos, FFA and battle duos
-      availableTrackOptions.push(TRACK_OPTION_DRAFT);
-    }
-
     return availableTrackOptions;
   },
   getBannedTracks() {
@@ -1177,7 +1172,7 @@ Lobby.methods = {
         enableRetroStadium: false,
         enableSpyroCircuit: !bannedTracks.includes(TRACK_SPYRO_CIRCUIT),
         showDraftLog: true,
-        pickTimeout: 10,
+        pickTimeout: 60,
         pinTrackList: true
       };
 
@@ -1193,6 +1188,9 @@ Lobby.methods = {
           break;
         case RACE_ITEMS_4V4:
           createDraft(channel, '0', teams, captains);
+          break;
+        case RACE_SURVIVAL:
+          discordDraft(channel, captains, TYPE_FFA, 0, this.trackCount, options).then();
           break;
         case RACE_ITEMLESS_FFA:
           discordDraft(channel, captains, TYPE_FFA, 0, this.trackCount, options).then();
