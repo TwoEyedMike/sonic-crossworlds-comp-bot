@@ -65,6 +65,10 @@ const INSTA_DUOS = 'insta_duos';
 const INSTA_3V3 = 'insta_3v3';
 const INSTA_4V4 = 'insta_4v4';
 
+const DUO_MODES = [RACE_ITEMS_DUOS, RACE_ITEMLESS_DUOS, BATTLE_DUOS];
+const _3V3_MODES = [RACE_ITEMS_3V3, RACE_ITEMLESS_3V3, BATTLE_3V3];
+const _4V4_MODES = [RACE_ITEMS_4V4, RACE_ITEMLESS_4V4, BATTLE_4V4];
+
 const SURVIVAL_STYLES = [
   'Items only',
   'Mixed',
@@ -197,6 +201,9 @@ module.exports.TRACK_SPYRO_CIRCUIT = TRACK_SPYRO_CIRCUIT;
 module.exports.TRACK_MEGAMIX_MANIA = TRACK_MEGAMIX_MANIA;
 module.exports.ARENA_FROZEN_FRENZY = ARENA_FROZEN_FRENZY;
 module.exports.ARENA_MAGNETIC_MAYHEM = ARENA_MAGNETIC_MAYHEM;
+module.exports.DUO_MODES = DUO_MODES;
+module.exports._3V3_MODES = _3V3_MODES;
+module.exports._4V4_MODES = _4V4_MODES;
 
 const Lobby = new Schema({
   date: {

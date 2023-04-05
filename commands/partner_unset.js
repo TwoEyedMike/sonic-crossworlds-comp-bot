@@ -1,14 +1,8 @@
 const {
   Lobby,
-  RACE_ITEMS_DUOS,
-  RACE_ITEMS_3V3,
-  RACE_ITEMS_4V4,
-  RACE_ITEMLESS_DUOS,
-  RACE_ITEMLESS_3V3,
-  RACE_ITEMLESS_4V4,
-  BATTLE_DUOS,
-  BATTLE_3V3,
-  BATTLE_4V4,
+  DUO_MODES,
+  _3V3_MODES,
+  _4V4_MODES
 } = require('../db/models/lobby');
 const { Duo } = require('../db/models/duo');
 
@@ -25,18 +19,10 @@ module.exports = {
     // eslint-disable-next-line max-len
     const authorSavedDuo = await Duo.findOne({ guild: guild.id, $or: [{ discord1: author.id }, { discord2: author.id }] });
     if (authorSavedDuo) {
+      const gameModes = DUO_MODES.concat(_3V3_MODES).concat(_4V4_MODES);
+
       const lobby = await Lobby.findOne({
-        type: { $in: [
-          RACE_ITEMS_DUOS, 
-          RACE_ITEMS_3V3, 
-          RACE_ITEMS_4V4, 
-          RACE_ITEMLESS_DUOS, 
-          RACE_ITEMLESS_3V3, 
-          RACE_ITEMLESS_4V4, 
-          BATTLE_DUOS, 
-          BATTLE_3V3, 
-          BATTLE_4V4
-        ]},
+        type: { $in: gameModes },
         players: { $in: [authorSavedDuo.discord1, authorSavedDuo.discord2] },
       });
 

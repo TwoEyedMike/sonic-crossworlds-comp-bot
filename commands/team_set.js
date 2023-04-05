@@ -1,8 +1,11 @@
-const { Lobby } = require('../db/models/lobby');
+const { 
+  Lobby,
+  _3V3_MODES,
+  _4V4_MODES
+} = require('../db/models/lobby');
 const { Player } = require('../db/models/player');
 const { RankedBan } = require('../db/models/ranked_ban');
 const { Team } = require('../db/models/team');
-const { RACE_3V3, RACE_4V4 } = require('../db/models/lobby');
 
 module.exports = {
   name: 'team_set',
@@ -59,8 +62,10 @@ module.exports = {
       return message.channel.warn('You are already in a team.');
     }
 
+    const gameModes = _3V3_MODES.concat(_4V4_MODES);
+
     // eslint-disable-next-line max-len
-    const lobby = await Lobby.findOne({ type: { $in: [RACE_3V3, RACE_4V4] }, players: { $in: [author.id, ...teammateIds] } });
+    const lobby = await Lobby.findOne({ type: { $in: gameModes }, players: { $in: [author.id, ...teammateIds] } });
     if (lobby) {
       return message.channel.warn('You can\'t set a team while one of you is playing in a lobby.');
     }
@@ -110,7 +115,7 @@ module.exports = {
         confirmMessage.delete();
 
         // eslint-disable-next-line no-shadow,max-len
-        const lobby = await Lobby.findOne({ guild: guild.id, type: { $in: [RACE_3V3, RACE_4V4] }, players: author.id });
+        const lobby = await Lobby.findOne({ guild: guild.id, type: { $in: gameModes }, players: author.id });
         if (lobby) {
           return message.channel.warn(`Command cancelled: ${author} joined another lobby.`);
         }

@@ -1,9 +1,7 @@
 const {
   Lobby,
-  RACE_ITEMLESS_3V3,
-  RACE_ITEMLESS_4V4,
-  BATTLE_3V3,
-  BATTLE_4V4,
+  _3V3_MODES,
+  _4V4_MODES
 } = require('../db/models/lobby');
 const { Team } = require('../db/models/team');
 
@@ -17,10 +15,12 @@ module.exports = {
   async execute(message) {
     const { author, guild } = message;
 
+    const gameModes = _3V3_MODES.concat(_4V4_MODES);
+
     const team = await Team.findOne({ guild: guild.id, players: author.id });
     if (team) {
       const lobby = await Lobby.findOne({
-        type: { $in: [RACE_3V3, RACE_4V4, RACE_ITEMLESS_3V3, RACE_ITEMLESS_4V4, BATTLE_3V3, BATTLE_4V4] },
+        type: { $in: gameModes },
         players: { $in: team.players },
       });
 

@@ -1,8 +1,13 @@
+const {
+  Lobby,
+  DUO_MODES,
+  _3V3_MODES,
+  _4V4_MODES
+} = require('../db/models/lobby');
+
 const { Duo } = require('../db/models/duo');
-const { Lobby } = require('../db/models/lobby');
 const { Player } = require('../db/models/player');
 const { RankedBan } = require('../db/models/ranked_ban');
-const { RACE_DUOS } = require('../db/models/lobby');
 
 module.exports = {
   name: 'partner_set',
@@ -67,8 +72,10 @@ module.exports = {
       return message.channel.warn(`${author}, ${partner} already has another partner.`);
     }
 
+    const gameModes = DUO_MODES.concat(_3V3_MODES).concat(_4V4_MODES);
+
     // eslint-disable-next-line max-len
-    const lobby = await Lobby.findOne({ type: RACE_DUOS, players: { $in: [author.id, partner.id] } });
+    const lobby = await Lobby.findOne({ type: { $in: gameModes }, players: { $in: [author.id, partner.id] } });
     if (lobby) {
       return message.channel.warn('You can\'t set a partner while one of you is in a lobby.');
     }
@@ -87,7 +94,7 @@ module.exports = {
         confirmMessage.delete();
 
         // eslint-disable-next-line no-shadow
-        const lobby = await Lobby.findOne({ type: RACE_DUOS, players: author.id });
+        const lobby = await Lobby.findOne({ type: { $in: gameModes }, players: author.id });
         if (lobby) {
           return message.channel.error(`Command cancelled: ${author} joined a lobby.`);
         }
