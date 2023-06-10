@@ -28,7 +28,7 @@ module.exports = {
       p.region = region.key;
       await p.save();
 
-      output.push(`Assigned region \`${region.name}\` to ${member.user.tag}.`);
+      output.push(`Assigned region \`${region.name}\` to ${member.user.getDisplayName()}.`);
     }
 
     if (output.length > 0) {

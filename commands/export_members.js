@@ -70,7 +70,7 @@ module.exports = {
 
           const row = [
             p.discordId,
-            member.user.tag,
+            member.user.getDisplayName(),
             p.psn,
             p.flag,
             regionName,

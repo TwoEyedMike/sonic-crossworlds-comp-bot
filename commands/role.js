@@ -18,7 +18,7 @@ module.exports = {
     const role = message.guild.roles.cache.find((r) => r.name.toLowerCase() === roleName.toLowerCase());
 
     async function addRole(member) {
-      const userTag = member.user.tag;
+      const userTag = member.user.getDisplayName();
       if (!member.roles.cache.some((r) => r.name === roleName)) {
         await member.roles.add(role);
         return `Added role ${role} to \`${userTag}\``;
@@ -28,7 +28,7 @@ module.exports = {
     }
 
     async function removeRole(member) {
-      const userTag = member.user.tag;
+      const userTag = member.user.getDisplayName();
       if (!member.roles.cache.some((r) => r.name === roleName)) {
         return `\`${userTag}\` doesn't have a role ${role}`;
       }

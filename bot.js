@@ -236,10 +236,10 @@ client.on('messageReactionAdd', (reaction) => {
               }
 
               if (reaction.emoji.name === '✅') {
-                title = `${user.username}#${user.discriminator} approved a suggestion by ${message.author.username}#${message.author.discriminator}`;
+                title = `${user.getDisplayName()} approved a suggestion by ${message.author.getDisplayName()}`;
                 color = 7844437;
               } else {
-                title = `${user.username}#${user.discriminator} denied a suggestion by ${message.author.username}#${message.author.discriminator}`;
+                title = `${user.getDisplayName()} denied a suggestion by ${message.author.getDisplayName()}`;
                 color = 12458289;
               }
 
@@ -447,7 +447,7 @@ client.on('message', (message) => {
 
   if (message.channel.type === 'text') {
     const { author } = message;
-    message.guild.log(`**${author.username}#${author.discriminator}** used command in the ${message.channel}
+    message.guild.log(`**${author.getDisplayName()}** used command in the ${message.channel}
 \`\`\`${message.content}\`\`\``);
   }
 

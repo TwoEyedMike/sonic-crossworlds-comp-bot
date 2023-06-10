@@ -116,7 +116,7 @@ function getEmbed(member, color, fields, url) {
       text: `!profile help  •  id: ${member.user.id}`,
     },
     author: {
-      name: `${member.user.username}#${member.user.discriminator}'s profile${member.user.bot ? ' (Bot)' : ''}`,
+      name: `${member.user.getDisplayName()}'s profile${member.user.bot ? ' (Bot)' : ''}`,
       icon_url: avatarUrl,
     },
     description: 'Check out the PSN profile by using the `!psn` command.',
