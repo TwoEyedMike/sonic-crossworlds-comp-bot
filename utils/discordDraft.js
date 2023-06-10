@@ -102,8 +102,6 @@ async function getTrackSelection(channel, user, excludedTracks, phase, draftOpti
       }
     });
 
-    console.log('Remaining Tracks:');
-    console.log(trackOptions);
     const remainingTracksList = trackOptions.map((t) => t.key);
 
     if (remainingTime > 0) {
