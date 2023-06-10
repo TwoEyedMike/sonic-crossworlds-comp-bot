@@ -11,7 +11,7 @@ module.exports = {
   name: 'team_set',
   description: 'Set your team for ranked 3 vs. 3 / 4 vs. 4.',
   guildOnly: true,
-  aliases: ['set_team'],
+  aliases: ['set_team', 'war'],
   cooldown: 15,
   // eslint-disable-next-line consistent-return
   async execute(message) {

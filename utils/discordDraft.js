@@ -102,6 +102,10 @@ async function getTrackSelection(channel, user, excludedTracks, phase, draftOpti
       }
     });
 
+    console.log('Remaining Tracks:');
+    console.log(trackOptions);
+    const remainingTracksList = trackOptions.map((t) => t.key);
+
     if (remainingTime > 0) {
       track = await channel.awaitMenuChoice(`Please select a track. You have ${remainingTime} second(s) left.`, user.id, trackOptions, 1, null, remainingTime);
 
@@ -110,12 +114,12 @@ async function getTrackSelection(channel, user, excludedTracks, phase, draftOpti
       }
 
       if (track === null) {
-        track = getRandomArrayElement(trackList);
+        track = getRandomArrayElement(remainingTracksList);
       }
 
       break;
     } else {
-      track = getRandomArrayElement(trackList);
+      track = getRandomArrayElement(remainingTracksList);
       break;
     }
   }

@@ -55,7 +55,7 @@ module.exports = {
           player.region = region.key;
           promise = player.save();
         } else {
-          if (!message.member.isStaff() && doc.flag) {
+          if (!message.member.isStaff() && doc.flag && doc.flag !== '🇺🇳') {
             return message.channel.warn(`You've already set your flag to ${doc.flag}. It cannot be changed.`);
           }
 

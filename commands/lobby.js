@@ -1883,6 +1883,7 @@ module.exports = {
         }
         break;
       case 'allow_chat':
+      case 'chat':
         findLobby(null, message.member.isStaff(), message, (doc, msg) => {
           if (message.author.id !== doc.creator && !message.member.isStaff()) {
             return message.channel.warn('Only the lobby creator can use this command.');

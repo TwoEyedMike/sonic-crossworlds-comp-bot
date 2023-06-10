@@ -13,7 +13,7 @@ module.exports = {
   name: 'partner_set',
   description: 'Set your partner for Ranked Duos.',
   guildOnly: true,
-  aliases: ['set_partner', 'marry'],
+  aliases: ['set_partner', 'marry', 'duo'],
   cooldown: 15,
   // eslint-disable-next-line consistent-return
   async execute(message) {
