@@ -19,7 +19,7 @@ const logDM = async (message) => {
     let { content } = message;
     if (content) content = content.split('\n').map((r) => `> ${r}`).join('\n');
 
-    channelDM.send(`**New DM by ${message.author} \`${message.author.getDisplayName()}\` \`${message.author.id}\`**\n${content}`, { files: attachments });
+    channelDM.send(`**New DM by ${message.author} \`${message.author.tag}\` \`${message.author.id}\`**\n${content}`, { files: attachments });
   } else {
     // eslint-disable-next-line no-console
     console.log(`Could not find guild ${config.main_guild}`);
