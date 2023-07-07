@@ -54,8 +54,6 @@ TextChannel.prototype.awaitMenuChoice = async function (question, userID, option
     const collectedMenus = await message.awaitMenus(filterFunction, filterOptions);
     const collectedMenu = collectedMenus.first();
 
-    await message.delete();
-
     if (maxValues > 1) {
       // eslint-disable-next-line prefer-destructuring
       values = collectedMenu.values;
@@ -64,6 +62,8 @@ TextChannel.prototype.awaitMenuChoice = async function (question, userID, option
     }
 
     await collectedMenu.reply.defer(true);
+
+    await message.delete();
   } catch (e) {
     await message.delete();
 
