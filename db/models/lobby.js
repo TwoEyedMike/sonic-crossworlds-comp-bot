@@ -76,10 +76,11 @@ const SURVIVAL_STYLES = [
 ];
 
 const LEADERBOARD_URLS = {
-  'solos': 'tzfvQv',
-  'itemless': 'Nm1SGc',
-  'teams': '3VRoy4',
-  'battle': 'mBwkl_',
+  'solos': '8-jFwF',
+  'itemless': 'Yg67aT',
+  'teams': '9ur6s5',
+  'insta_teams': '3NM8MD',
+  'battle': '2pgqJQ',
 };
 
 const LEADERBOARDS = {
@@ -98,9 +99,9 @@ const LEADERBOARDS = {
   [BATTLE_DUOS]: LEADERBOARD_URLS.battle,
   [BATTLE_3V3]: LEADERBOARD_URLS.battle,
   [BATTLE_4V4]: LEADERBOARD_URLS.battle,
-  [INSTA_DUOS]: LEADERBOARD_URLS.solos,
-  [INSTA_3V3]: LEADERBOARD_URLS.solos,
-  [INSTA_4V4]: LEADERBOARD_URLS.solos,
+  [INSTA_DUOS]: LEADERBOARD_URLS.insta_teams,
+  [INSTA_3V3]: LEADERBOARD_URLS.insta_teams,
+  [INSTA_4V4]: LEADERBOARD_URLS.insta_teams,
 };
 
 const TRACK_OPTION_RNG = 'random';
