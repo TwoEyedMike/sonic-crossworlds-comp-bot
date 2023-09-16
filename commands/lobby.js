@@ -52,7 +52,6 @@ const generateTracks = require('../utils/generateTracks');
 const getConfigValue = require('../utils/getConfigValue');
 const getLorenziBoardData = require('../utils/getLorenziBoardData');
 const greedyPartition = require('../utils/greedyPartition');
-const shuffleArray = require('../utils/shuffleArray');
 
 const {
   optimalPartition3,
@@ -70,6 +69,7 @@ const { regions } = require('../db/regions');
 const { rulesets } = require('../db/rulesets');
 const { trackOptions } = require('../db/track_options');
 const getRandomArrayElement = require('../utils/getRandomArrayElement');
+const resultContainsBannedPlayer = require('../utils/resultContainsBannedPlayer');
 
 const lock = new AsyncLock();
 
@@ -711,13 +711,47 @@ function sendBattleModeSettings(doc, roomChannel, modes) {
 }
 
 /**
+ * Gets the highest rank for each player in the lobby
+ * @param doc
+ * @returns Promise<*[]>
+ */
+async function getHighestPlayerRanks(doc, players) {
+  const modePool = doc.getModePoolForTeamBalance();
+  const playerRanks = [];
+
+  for (const p of players) {
+    let highestRank = 0;
+
+    for (const gameMode of modePool) {
+      let lobby = new Lobby();
+      lobby.players = doc.players;
+      lobby.type = gameMode;
+      lobby.mode = doc.mode;
+
+      const [, , rank] = await getPlayerInfo(p, lobby);
+
+      if (rank > highestRank) {
+        highestRank = rank;
+      }
+    }
+
+    playerRanks.push({
+      discordId: p,
+      rank: highestRank,
+    });
+  }
+
+  return playerRanks.sort((a, b) => b.rank - a.rank);
+}
+
+/**
  * Creates balanced teams
  * @param doc
  * @returns Promise<*[]>
  */
 async function createBalancedTeams(doc) {
   const randomTeams = [];
-  const playerRanks = await getPlayerRanks(doc);
+  const playerRanks = await getHighestPlayerRanks(doc, doc.getSoloPlayers());
   const teamCount = (doc.getSoloPlayers().length / doc.getTeamSize());
 
   if (doc.isDuos()) {
@@ -2954,11 +2988,24 @@ client.on('message', (message) => {
 
   // check submissions
   if (message.channel.name === config.channels.ranked_results_submissions_channel) {
-    if (!message.member.isStaff() && !message.content.includes('`') && message.content.includes('|')) {
-      message.reply(`\`\`\`${message.content}\`\`\``).then(() => {
+    resultContainsBannedPlayer(message.content).then((result) => {
+      if (result) {
         message.delete();
-      });
-    }
+
+        const notificationChannel = message.guild.channels.cache.find((c) => c.name.toLowerCase() === config.channels.matchmaking_notifications_channel.toLowerCase());
+        if (!notificationChannel) {
+          return;
+        }
+
+        return notificationChannel.warn(`${message.author}, the score table you posted contains a player who is banned from playing in ranked lobbies. You cannot submit this score table.`);
+      }
+
+      if (!message.member.isStaff() && !message.content.includes('`') && message.content.includes('|')) {
+        message.reply(`\`\`\`${message.content}\`\`\``).then(() => {
+          message.delete();
+        });
+      }
+    });
   }
 
   if (message.member.isStaff()) return;
