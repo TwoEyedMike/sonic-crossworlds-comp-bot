@@ -9,6 +9,7 @@ const tt = require('./tt');
 const tt2 = require('./tt2');
 const rng = require('./random');
 const league = require('./league');
+const ffa2 = require('./ffa2');
 
 function getUserFromMention(client, mention) {
   if (!mention) return null;
@@ -168,9 +169,21 @@ function parse(message, fields) {
           if (!['PS4', 'PS5', 'Xbox', 'Switch'].includes(value)) return false;
           data.console = value;
           return true;
+        case 'psConsole':
+          if (!['PS4', 'PS5'].includes(value)) return false;
+          data.psConsole = value;
+          return true;
         case 'timeZone':
             if (!['America', 'Europe', 'Asia'].includes(value)) return false;
             data.timeZone = value;
+            return true;
+        case 'natType':
+            if (!['NAT 1', 'NAT 2 Open', 'NAT 2 Closed', 'NAT 3'].includes(value)) return false;
+            data.natType = value;
+            return true;
+        case 'region':
+            if (!['Europe', 'North America', 'South America', 'Africa', 'Asia', 'Australia'].includes(value)) return false;
+            data.region = value;
             return true;
         case 'flag': // unique for WC
           if (!message.client.flags.includes(value)) {
@@ -229,4 +242,5 @@ module.exports.parsers = {
   TT2: tt2,
   RNG: rng,
   League: league,
+  FFA2: ffa2
 };

@@ -12,5 +12,5 @@ module.exports = {
     },
   ],
   template: `PSN: ctr_tourney_bot
-host: yes`,
+Host: Yes`,
 };
