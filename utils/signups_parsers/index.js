@@ -166,23 +166,23 @@ function parse(message, fields) {
           data[field.name] = value.toLowerCase() === 'yes';
           return true;
         case 'console':
-          if (!['PS4', 'PS5', 'Xbox', 'Switch'].includes(value.toLowerCase())) return false;
+          if (!['ps4', 'ps5', 'xbox', 'switch'].includes(value.toLowerCase())) return false;
           data[field.name] = value;
           return true;
         case 'psConsole':
-          if (!['PS4', 'PS5'].includes(value.toLowerCase())) return false;
+          if (!['ps4', 'ps5'].includes(value.toLowerCase())) return false;
           data[field.name] = value;
           return true;
         case 'timeZone':
-          if (!['America', 'Europe', 'Asia'].includes(value.toLowerCase())) return false;
+          if (!['america', 'europe', 'asia'].includes(value.toLowerCase())) return false;
           data[field.name] = value;
           return true;
         case 'natType':
-          if (!['NAT 1', 'NAT 2 Open', 'NAT 2 Closed', 'NAT 3'].includes(value.toLowerCase())) return false;
+          if (!['nat 1', 'nat 2 open', 'nat 2 closed', 'nat 3'].includes(value.toLowerCase())) return false;
           data[field.name] = value;
           return true;
         case 'region':
-          if (!['Europe', 'North America', 'South America', 'Africa', 'Asia', 'Australia'].includes(value)) return false;
+          if (!['europe', 'north america', 'south america', 'africa', 'asia', 'australia'].includes(value.toLowerCase())) return false;
           data[field.name] = value;
           return true;
         case 'flag': // unique for WC

@@ -12,7 +12,7 @@ module.exports = {
     },
     {
       key: /console/i,
-      name: 'psConsole',
+      name: 'console',
       type: 'psConsole'
     },
     {
