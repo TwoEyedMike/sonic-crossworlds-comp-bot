@@ -12,7 +12,7 @@ module.exports = {
     },
     {
       key: /console/i,
-      name: 'console',
+      name: 'psConsole',
       type: 'psConsole'
     },
     {
@@ -27,7 +27,7 @@ module.exports = {
     }
   ],
   template: `PSN: ctr_tourney_bot
-Host: Yes
+Host: Yes / No
 Console: PS4 / PS5
 Region: Europe / North America / South America / Africa / Asia / Australia
 NAT Type: NAT 1 / NAT 2 Open / NAT 2 Closed / NAT 3`,
