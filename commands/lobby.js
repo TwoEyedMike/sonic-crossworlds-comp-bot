@@ -2334,11 +2334,6 @@ async function mogi(reaction, user, removed = false) {
             }
           }
 
-          // eslint-disable-next-line max-len
-          if (member.isMuted()) {
-            errors.push('You cannot join matchmaking lobbies when you are muted.');
-          }
-
           const player = await Player.findOne({ discordId: user.id });
 
           if (!player || !player.rankedName) {

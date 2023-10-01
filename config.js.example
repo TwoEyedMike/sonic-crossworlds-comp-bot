@@ -53,7 +53,6 @@ module.exports = {
     staff_role: 'Staff',
     tournament_staff_role: 'Tournament Staff',
     ranked_staff_role: 'Ranked Staff',
-    muted_role: 'Muted',
     ranked_updater_role: 'Ranked Updater',
     streaming_role: 'Streaming',
     wc_champion_role: 'World Cup Champion',

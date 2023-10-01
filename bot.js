@@ -14,7 +14,6 @@ const { Command } = require('./db/models/command');
 const { CommandUsage } = require('./db/models/command_usage');
 const { Config } = require('./db/models/config');
 const { Cooldown } = require('./db/models/cooldown');
-const { Mute } = require('./db/models/mute');
 const { Player } = require('./db/models/player');
 const { SignupsChannel } = require('./db/models/signups_channel');
 const alarms = require('./alarms');
@@ -522,13 +521,6 @@ client.on('guildMemberAdd', (member) => {
   const now = new Date();
   const { user } = member;
 
-  // eslint-disable-next-line max-len
-  Mute.findOne(({ discordId: user.id, guildId: guild.id, mutedTill: { $gte: now } })).then(async (doc) => {
-    if (doc) {
-      await member.mute();
-    }
-  });
-
   Player.findOne({ discordId: user.id }).then((player) => {
     if (!player) {
       player = new Player();
@@ -673,27 +665,6 @@ client.on('presenceUpdate', (oldPresence, newPresence) => {
     });
   }
 });
-
-function checkMutes() {
-  const now = new Date();
-  Mute.find({ mutedTill: { $lte: now } }).then((docs) => {
-    docs.forEach((doc) => {
-      const guild = client.guilds.cache.get(doc.guildId);
-      guild.members.fetch(doc.discordId).then((member) => {
-        // eslint-disable-next-line max-len
-        const mutedRole = guild.roles.cache.find((r) => r.name.toLowerCase() === config.roles.muted_role.toLowerCase());
-
-        if (mutedRole && member.isMuted()) {
-          member.roles.remove(mutedRole).then();
-        }
-
-        doc.delete();
-      });
-    });
-  });
-}
-
-new CronJob('* * * * *', checkMutes).start();
 
 try {
   db(() => {
