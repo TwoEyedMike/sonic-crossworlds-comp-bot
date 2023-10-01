@@ -2887,8 +2887,8 @@ const checkOldLobbies = () => {
           }
         }
 
-        const remindMinutes = [55];
-        const closeMinutes = 60;
+        const remindMinutes = doc.getCloseRemindMinutes();
+        const closeMinutes = doc.getCloseAfterMinutes();
 
         if (remindMinutes.includes(minutes) || minutes >= closeMinutes) {
           if (minutes >= closeMinutes) {

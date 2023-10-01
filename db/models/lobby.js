@@ -862,6 +862,20 @@ Lobby.methods = {
 
     return [remindMinutesMin, remindMinutesMax];
   },
+  getCloseRemindMinutes() {
+    if (this.isTournament()) {
+      return [110, 115];
+    }
+
+    return [55];
+  },
+  getCloseAfterMinutes() {
+    if (this.isTournament()) {
+      return 120;
+    }
+
+    return 60;
+  },
   getPingMinutes() {
     if (this.isTournament()) {
       return null;
