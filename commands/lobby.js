@@ -2273,16 +2273,21 @@ client.on('clickButton', async (b) => {
       client.guilds.cache.get(b.guild.id).channels.cache.get(b.message.channel.id).messages.fetch(b.message.id).then(async (lobbyMessage) => {
         const doc = await Lobby.findOne({ message: lobbyMessage.id });
 
-        if (!doc.started) {
-          if (doc.creator === b.clicker.user.id || b.clicker.member.isStaff()) {
+        if (!doc) {
+          await lobbyMessage.delete();
+          await b.reply.defer(true);
+        } else {
+          if (!doc.started) {
+            if (doc.creator === b.clicker.user.id || b.clicker.member.isStaff()) {
+              deleteLobby(doc, lobbyMessage, false);
+            } else {
+              await b.reply.send('You do not have permission to do that.', { ephemeral: true });
+            }
+          } else if (b.clicker.member.isStaff()) {
             deleteLobby(doc, lobbyMessage, false);
           } else {
             await b.reply.send('You do not have permission to do that.', { ephemeral: true });
           }
-        } else if (b.clicker.member.isStaff()) {
-          deleteLobby(doc, lobbyMessage, false);
-        } else {
-          await b.reply.send('You do not have permission to do that.', { ephemeral: true });
         }
       });
       break;

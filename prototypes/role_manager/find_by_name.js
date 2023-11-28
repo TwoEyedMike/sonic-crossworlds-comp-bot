@@ -12,8 +12,7 @@ RoleManager.prototype.findByName = async function (roleName, createIfNotExists) 
     createIfNotExists = true;
   }
 
-  const roles = await this.fetch();
-  let role = roles.cache.find((r) => r.name.toLowerCase() === roleName.toLowerCase());
+  let role = this.cache.find((r) => r.name.toLowerCase() === roleName.toLowerCase());
 
   if (!role && createIfNotExists) {
     role = await this.create({
