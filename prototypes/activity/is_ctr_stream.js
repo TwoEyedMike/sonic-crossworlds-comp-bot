@@ -6,5 +6,5 @@ const { Activity } = require('discord.js');
  */
 // eslint-disable-next-line func-names
 Activity.prototype.isCTRStream = function () {
-  return this.type === 'STREAMING' && this.state && this.state.toLowerCase().includes('crash team');
+  return this.type === 'STREAMING' && this.state && this.state.toLowerCase().includes('crash team racing');
 };
