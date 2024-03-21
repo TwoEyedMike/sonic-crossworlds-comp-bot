@@ -4,6 +4,7 @@ module.exports.consoles = [
     name: 'PlayStation 4',
     description: null,
     emote: '🔵',
+    lockAvailable: true,
     default: true,
   },
   {
@@ -11,6 +12,7 @@ module.exports.consoles = [
     name: 'PlayStation 5',
     description: null,
     emote: '⚪',
+    lockAvailable: true,
     default: false,
   },
   {
@@ -18,6 +20,7 @@ module.exports.consoles = [
     name: 'Nintendo Switch',
     description: null,
     emote: '🔴',
+    lockAvailable: false,
     default: false,
   },
   {
@@ -25,6 +28,7 @@ module.exports.consoles = [
     name: 'Xbox One',
     description: null,
     emote: '🟢',
+    lockAvailable: false,
     default: false,
   },
   {
@@ -32,6 +36,7 @@ module.exports.consoles = [
     name: 'Xbox Series X',
     description: null,
     emote: '⚫',
+    lockAvailable: false,
     default: false,
   },
 ];

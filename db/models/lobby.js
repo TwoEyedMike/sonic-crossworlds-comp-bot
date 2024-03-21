@@ -6,6 +6,7 @@ const { engineStyles } = require('../engine_styles');
 const { regions } = require('../regions');
 const { rulesets } = require('../rulesets');
 const { trackOptions } = require('../track_options');
+const { consoles } = require('../consoles');
 
 const createDraft = require('../../utils/createDraft');
 const createDraftv2 = require('../../utils/createDraftv2');
@@ -42,6 +43,7 @@ const engineKeys = engineStyles.map((e) => e.key);
 const regionKeys = regions.map((r) => r.key);
 const rulesetIds = rulesets.map((r) => r.id);
 const trackOptionKeys = trackOptions.map((t) => t.key);
+const consoleKeys = consoles.map((c) => c.key);
 
 const LOBBY_MODE_STANDARD = 'standard';
 const LOBBY_MODE_TOURNAMENT = 'tournament';
@@ -134,6 +136,7 @@ const CUSTOM_OPTION_TRACK_POOL = 'track_pool';
 const CUSTOM_OPTION_PLAYERS = 'players';
 const CUSTOM_OPTION_RULESET = 'ruleset';
 const CUSTOM_OPTION_REGION = 'region';
+const CUSTOM_OPTION_CONSOLES = 'consoles';
 const CUSTOM_OPTION_BATTLE_MODES = 'battle_modes';
 const CUSTOM_OPTION_RESERVE = 'reserve';
 const CUSTOM_OPTION_ANONYMOUS = 'anonymous';
@@ -188,6 +191,7 @@ module.exports.CUSTOM_OPTION_TRACK_POOL = CUSTOM_OPTION_TRACK_POOL;
 module.exports.CUSTOM_OPTION_PLAYERS = CUSTOM_OPTION_PLAYERS;
 module.exports.CUSTOM_OPTION_RULESET = CUSTOM_OPTION_RULESET;
 module.exports.CUSTOM_OPTION_REGION = CUSTOM_OPTION_REGION;
+module.exports.CUSTOM_OPTION_CONSOLES = CUSTOM_OPTION_CONSOLES;
 module.exports.CUSTOM_OPTION_BATTLE_MODES = CUSTOM_OPTION_BATTLE_MODES;
 module.exports.CUSTOM_OPTION_RESERVE = CUSTOM_OPTION_RESERVE;
 module.exports.CUSTOM_OPTION_ANONYMOUS = CUSTOM_OPTION_ANONYMOUS;
@@ -283,6 +287,11 @@ const Lobby = new Schema({
     type: Number,
     enum: [null, 0, 1, 2],
     default: null,
+  },
+  consoles: {
+    type: [String],
+    enum: consoleKeys,
+    default: null
   },
   allowPremadeTeams: {
     type: Boolean,

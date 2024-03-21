@@ -24,6 +24,7 @@ const {
   CUSTOM_OPTION_PLAYERS,
   CUSTOM_OPTION_RULESET,
   CUSTOM_OPTION_REGION,
+  CUSTOM_OPTION_CONSOLES,
   CUSTOM_OPTION_BATTLE_MODES,
   CUSTOM_OPTION_RESERVE,
   CUSTOM_OPTION_ANONYMOUS,
@@ -68,6 +69,7 @@ const { lobbyTypes } = require('../db/lobby_types');
 const { regions } = require('../db/regions');
 const { rulesets } = require('../db/rulesets');
 const { trackOptions } = require('../db/track_options');
+const { consoles } = require('../db/consoles');
 const getRandomArrayElement = require('../utils/getRandomArrayElement');
 const resultContainsBannedPlayer = require('../utils/resultContainsBannedPlayer');
 
@@ -330,6 +332,12 @@ async function getEmbed(doc, players, tracks, roomChannel) {
     lobbyRegions.push(region.name);
   });
 
+  const lobbyConsoles = [];
+  doc.consoles.forEach((dc) => {
+    const docConsole = consoles.find((c) => c.key === dc);
+    lobbyConsoles.push(docConsole.name);
+  });
+
   const playersField = {
     name: `:busts_in_silhouette: Players (${doc.players.length} / ${doc.maxPlayerCount})`,
     value: playersText,
@@ -400,6 +408,10 @@ async function getEmbed(doc, players, tracks, roomChannel) {
 
   if (lobbyRegions.length > 0) {
     settings.push(`Regions: ${lobbyRegions.join(', ')}`);
+  }
+
+  if (lobbyConsoles.length > 0) {
+    settings.push(`Consoles: ${lobbyConsoles.join(', ')}`);
   }
 
   if (!doc.locked.$isEmpty()) {
@@ -1423,6 +1435,7 @@ function deleteLobby(doc, message, sendMessage) {
       finishedLobby.trackOption = doc.trackOption;
       finishedLobby.ruleset = doc.ruleset;
       finishedLobby.regions = doc.regions;
+      finishedLobby.consoles = doc.consoles;
       finishedLobby.engineRestriction = doc.engineRestriction;
       finishedLobby.survivalStyle = doc.survivalStyle;
       finishedLobby.tournament = doc.isTournament();
@@ -1473,6 +1486,7 @@ module.exports = {
         CUSTOM_OPTION_PLAYERS,
         CUSTOM_OPTION_RULESET,
         CUSTOM_OPTION_REGION,
+        CUSTOM_OPTION_CONSOLES,
         CUSTOM_OPTION_BATTLE_MODES,
         CUSTOM_OPTION_RESERVE,
         CUSTOM_OPTION_ANONYMOUS,
@@ -1676,6 +1690,25 @@ module.exports = {
 
           lobby.engineRestriction = null;
           lobby.survivalStyle = (lobby.isSurvival() && lobby.isRacing() ? 1 : null);
+
+          let lobbyConsoles = null;
+          const lockAvailableConsoles = consoles.filter((c) => c.lockAvailable);
+
+          if (custom.includes(CUSTOM_OPTION_CONSOLES) && lockAvailableConsoles.length > 0) {
+            try {
+              lobbyConsoles = await message.channel.awaitMenuChoice(
+                'Please select the consoles that players require to join your lobby.',
+                message.author.id,
+                lockAvailableConsoles,
+                lockAvailableConsoles.length
+              );
+            } catch (e) {
+            }
+          }
+
+          if (lobbyConsoles) {
+            lobby.consoles = lobbyConsoles;
+          }
 
           let limitAndLKDOnly = false;
           if (lobby.isBattle() && custom.includes(CUSTOM_OPTION_BATTLE_MODES)) {
@@ -2364,6 +2397,25 @@ async function mogi(reaction, user, removed = false) {
             }
           }
 
+          if (doc.consoles.length > 0) {
+            if (!player || !player.consoles.length) {
+              errors.push('You need to set your consoles because the lobby you are trying to join is console locked. Use `!set_consoles` and then follow the bot instructions.');
+            } else if (!doc.consoles.some((c) => player.consoles.includes(c))) {
+              const lobbyConsoles = [];
+              doc.consoles.forEach((dc) => {
+                const c = consoles.find((r) => r.key === dc);
+                lobbyConsoles.push(c.name);
+              });
+
+              const playerConsoles = player.consoles.map((pc) => {
+                const playerConsole = consoles.find((c) => c.key === pc);
+                return playerConsole.name;
+              });
+
+              errors.push(`The lobby you are trying to join is locked to ${lobbyConsoles.join(', ')} but you only play on ${playerConsoles.join(', ')}.`);
+            }
+          }
+
           if (doc.anonymous && (!player || !player.region)) {
             errors.push('You need to set your region before you can join an anonymous lobby.');
           }
@@ -2472,6 +2524,25 @@ async function mogi(reaction, user, removed = false) {
 
                     const partnerRegion = regions.find((r) => r.key === partner.region);
                     errors.push(`The lobby you are trying to join is locked to ${lobbyRegions.join(', ')} and your partner <@!${savedPartner}> is from ${partnerRegion.name}.`);
+                  }
+                }
+
+                if (doc.consoles.length > 0) {
+                  if (!partner || !partner.consoles.length) {
+                    errors.push(`Your partner <@!${savedPartner} needs to set their consoles. Use \`!set_consoles\` and then follow the bot instructions.`);
+                  } else if (!doc.consoles.some((c) => partner.consoles.includes(c))) {
+                    const lobbyConsoles = [];
+                    doc.consoles.forEach((dc) => {
+                      const c = consoles.find((r) => r.key === dc);
+                      lobbyConsoles.push(c.name);
+                    });
+
+                    const partnerConsoles = partner.consoles.map((pc) => {
+                      const partnerConsole = consoles.find((c) => c.key === pc);
+                      return partnerConsole.name;
+                    });
+
+                    errors.push(`The lobby you are trying to join is locked to ${lobbyConsoles.join(', ')} but your partner <@!${savedPartner} only plays on ${playerConsoles.join(', ')}.`);
                   }
                 }
 
@@ -2630,6 +2701,25 @@ async function mogi(reaction, user, removed = false) {
 
                       const teammateRegion = regions.find((r) => r.key === teammate.region);
                       errors.push(`The lobby you are trying to join is locked to ${lobbyRegions.join(', ')} and your teammate <@!${teammate.discordId}> is from ${teammateRegion.name}.`);
+                    }
+                  }
+
+                  if (doc.consoles.length > 0) {
+                    if (!teammate.consoles.length) {
+                      errors.push(`Your teammate <@!${teammate.discordId} needs to set their consoles. Use \`!set_consoles\` and then follow the bot instructions.`);
+                    } else if (!doc.consoles.some((c) => teammate.consoles.includes(c))) {
+                      const lobbyConsoles = [];
+                      doc.consoles.forEach((dc) => {
+                        const c = consoles.find((r) => r.key === dc);
+                        lobbyConsoles.push(c.name);
+                      });
+
+                      const teammateConsoles = teammate.consoles.map((tc) => {
+                        const teammateConsole = consoles.find((c) => c.key === tc);
+                        return teammateConsole.name;
+                      });
+
+                      errors.push(`The lobby you are trying to join is locked to ${lobbyConsoles.join(', ')} but your teammate <@!${teammate.discordId} only plays on ${playerConsoles.join(', ')}.`);
                     }
                   }
 
