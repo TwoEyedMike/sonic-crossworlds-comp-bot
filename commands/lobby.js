@@ -30,8 +30,11 @@ const {
   CUSTOM_OPTION_ANONYMOUS,
   CUSTOM_OPTION_PRIVATE_CHANNEL,
   CUSTOM_OPTION_DESCRIPTION,
+  CUSTOM_OPTION_TEAM_CREATION,
   CUSTOM_OPTION_TYPE,
   CUSTOM_OPTION_MMR_LOCK,
+  TEAM_CREATION_BALANCED,
+  TEAM_CREATION_RANDOM
 } = require('../db/models/lobby');
 const config = require('../config');
 const { Cooldown } = require('../db/models/cooldown');
@@ -72,6 +75,7 @@ const { trackOptions } = require('../db/track_options');
 const { consoles } = require('../db/consoles');
 const getRandomArrayElement = require('../utils/getRandomArrayElement');
 const resultContainsBannedPlayer = require('../utils/resultContainsBannedPlayer');
+const ucfirst = require('../utils/ucfirst');
 
 const lock = new AsyncLock();
 
@@ -332,12 +336,6 @@ async function getEmbed(doc, players, tracks, roomChannel) {
     lobbyRegions.push(region.name);
   });
 
-  const lobbyConsoles = [];
-  doc.consoles.forEach((dc) => {
-    const docConsole = consoles.find((c) => c.key === dc);
-    lobbyConsoles.push(docConsole.name);
-  });
-
   const playersField = {
     name: `:busts_in_silhouette: Players (${doc.players.length} / ${doc.maxPlayerCount})`,
     value: playersText,
@@ -389,36 +387,36 @@ async function getEmbed(doc, players, tracks, roomChannel) {
   };
 
   const settings = [
-    `Max Players: ${doc.maxPlayerCount}`,
-    `${doc.isRacing() ? 'Track Count' : 'Arena Count'}: ${doc.trackCount}`,
+    `Max Players: **${doc.maxPlayerCount}**`,
+    `${doc.isRacing() ? 'Track Count' : 'Arena Count'}: **${doc.trackCount}**`
   ];
 
+  if (doc.isTeams()) {
+    settings.push(`Team Creation: **${ucfirst(doc.teamCreation)}**`);
+  }
+
   if (doc.isRacing()) {
-    settings.push(`Lap Count: ${doc.lapCount}`);
-    settings.push(`Ruleset: ${ruleset.emote} (${ruleset.name})`);
+    settings.push(`Lap Count: **${doc.lapCount}**`);
+    settings.push(`Ruleset: ${ruleset.emote} **${ruleset.name}**`);
 
     if (engineRestriction) {
-      settings.push(`Engine Style: ${engineRestriction.emote}`);
+      settings.push(`Engine Style: **${engineRestriction.emote}**`);
     }
 
     if (survivalStyle) {
-      settings.push(`Survival Style: ${survivalStyle}`);
+      settings.push(`Survival Style: **${survivalStyle}**`);
     }
   }
 
   if (lobbyRegions.length > 0) {
-    settings.push(`Regions: ${lobbyRegions.join(', ')}`);
-  }
-
-  if (lobbyConsoles.length > 0) {
-    settings.push(`Consoles: ${lobbyConsoles.join(', ')}`);
+    settings.push(`Regions: **${lobbyRegions.join(', ')}**`);
   }
 
   if (!doc.locked.$isEmpty()) {
     const minRank = doc.locked.min;
     const maxRank = doc.locked.max;
 
-    settings.push(`Rank Lock: ${minRank} - ${maxRank}`);
+    settings.push(`Rank Lock: **${minRank} - ${maxRank}**`);
   }
 
   if (doc.isTeams() && doc.reservedTeam) {
@@ -801,6 +799,31 @@ async function createBalancedTeams(doc) {
 }
 
 /**
+ * Creates random teams
+ * @param doc
+ * @return Array
+ */
+async function createRandomTeams(doc) {
+  const randomTeams = [];
+  const playerRanks = await getHighestPlayerRanks(doc, doc.getSoloPlayers());
+  const teamCount = (doc.getSoloPlayers().length / doc.getTeamSize());
+
+  for (let i = 1; i <= teamCount; i++) {
+    const team = [];
+
+    for (let x = 1; x <= doc.getTeamSize(); x++) {
+      const ri = Math.floor(Math.random() * playerRanks.length);
+      team.push(playerRanks[ri].discordId);
+      playerRanks.splice(ri, 1);
+    }
+
+    randomTeams.push(team);
+  }
+
+  return randomTeams;
+}
+
+/**
  * Creates patchwork teams
  * @param Lobby doc
  * @returns Array 
@@ -1113,7 +1136,12 @@ function startLobby(docId) {
                 let randomTeams = [];
 
                 if (!doc.hasIncompleteTeams()) {
-                  randomTeams = await createBalancedTeams(doc);
+                  if (doc.teamCreation === TEAM_CREATION_BALANCED) {
+                    randomTeams = await createBalancedTeams(doc);
+                  } else {
+                    randomTeams = await createRandomTeams(doc);
+                  }
+
                   doc.teamList = Array.from(doc.teamList).concat(randomTeams);
                 } else {
                   randomTeams = await createPatchworkTeams(doc);
@@ -1492,6 +1520,7 @@ module.exports = {
         CUSTOM_OPTION_ANONYMOUS,
         CUSTOM_OPTION_PRIVATE_CHANNEL,
         CUSTOM_OPTION_DESCRIPTION,
+        CUSTOM_OPTION_TEAM_CREATION,
         CUSTOM_OPTION_TYPE,
         CUSTOM_OPTION_MMR_LOCK,
       ];
@@ -1822,6 +1851,31 @@ module.exports = {
           }
 
           lobby.description = description;
+
+          let teamCreation = TEAM_CREATION_BALANCED;
+          if (lobby.isTeams() && custom.includes(CUSTOM_OPTION_TEAM_CREATION)) {
+            const teamCreationOptions = [
+              {
+                key: TEAM_CREATION_BALANCED,
+                name: 'Balanced',
+                description: 'Both teams will have a similar average rank.',
+                default: true,
+              },
+              {
+                key: TEAM_CREATION_RANDOM,
+                name: 'Random',
+                description: 'Teams will be generated completely at random.',
+                default: false,
+              },
+            ];
+
+            try {
+              teamCreation = await message.channel.awaitMenuChoice('Please select the team creation method.', message.author.id, teamCreationOptions, 1);
+            } catch (e) {
+            }
+          }
+
+          lobby.teamCreation = teamCreation;
 
           let ranked = lobby.canBeRanked();
           if (lobby.canBeRanked() && custom.includes(CUSTOM_OPTION_TYPE)) {
@@ -2989,11 +3043,11 @@ const checkOldLobbies = () => {
           if (minutes >= closeMinutes) {
             const duration = moment.duration(closeMinutes, 'minutes').humanize();
             deleteLobby(doc);
-            return notificationChannel.info(`Your lobby \`${doc.id}\` has been deleted because it wasn't started in ${duration}.`, [doc.creator]);
+            return notificationChannel.info(`Your lobby \`${doc.id}\` has been deleted because it wasn't started in ${duration}.`, doc.players);
           }
 
           const duration = moment.duration(closeMinutes - minutes, 'minutes').humanize();
-          return notificationChannel.warn(`Your lobby \`${doc.id}\` will be deleted in ${duration} if it will not be started.`, [doc.creator]);
+          return notificationChannel.warn(`Your lobby \`${doc.id}\` will be deleted in ${duration} if it will not be started.`, doc.players);
         }
       }
     });

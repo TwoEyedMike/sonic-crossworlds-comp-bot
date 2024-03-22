@@ -66,6 +66,8 @@ const BATTLE_4V4 = 'battle_4v4';
 const INSTA_DUOS = 'insta_duos';
 const INSTA_3V3 = 'insta_3v3';
 const INSTA_4V4 = 'insta_4v4';
+const TEAM_CREATION_BALANCED = 'balanced';
+const TEAM_CREATION_RANDOM = 'random';
 
 const DUO_MODES = [RACE_ITEMS_DUOS, RACE_ITEMLESS_DUOS, BATTLE_DUOS];
 const _3V3_MODES = [RACE_ITEMS_3V3, RACE_ITEMLESS_3V3, BATTLE_3V3];
@@ -141,6 +143,7 @@ const CUSTOM_OPTION_BATTLE_MODES = 'battle_modes';
 const CUSTOM_OPTION_RESERVE = 'reserve';
 const CUSTOM_OPTION_ANONYMOUS = 'anonymous';
 const CUSTOM_OPTION_PRIVATE_CHANNEL = 'private_channel';
+const CUSTOM_OPTION_TEAM_CREATION = 'team_creation';
 const CUSTOM_OPTION_DESCRIPTION = 'description';
 const CUSTOM_OPTION_TYPE = 'type';
 const CUSTOM_OPTION_MMR_LOCK = 'mmr_lock';
@@ -198,6 +201,7 @@ module.exports.CUSTOM_OPTION_ANONYMOUS = CUSTOM_OPTION_ANONYMOUS;
 module.exports.CUSTOM_OPTION_TYPE = CUSTOM_OPTION_TYPE;
 module.exports.CUSTOM_OPTION_PRIVATE_CHANNEL = CUSTOM_OPTION_PRIVATE_CHANNEL;
 module.exports.CUSTOM_OPTION_DESCRIPTION = CUSTOM_OPTION_DESCRIPTION;
+module.exports.CUSTOM_OPTION_TEAM_CREATION = CUSTOM_OPTION_TEAM_CREATION;
 module.exports.CUSTOM_OPTION_MMR_LOCK = CUSTOM_OPTION_MMR_LOCK;
 module.exports.TRACK_DRAGON_MINES = TRACK_DRAGON_MINES;
 module.exports.TRACK_HYPER_SPACEWAY = TRACK_HYPER_SPACEWAY;
@@ -209,6 +213,8 @@ module.exports.ARENA_MAGNETIC_MAYHEM = ARENA_MAGNETIC_MAYHEM;
 module.exports.DUO_MODES = DUO_MODES;
 module.exports._3V3_MODES = _3V3_MODES;
 module.exports._4V4_MODES = _4V4_MODES;
+module.exports.TEAM_CREATION_BALANCED = TEAM_CREATION_BALANCED;
+module.exports.TEAM_CREATION_RANDOM = TEAM_CREATION_RANDOM;
 
 const Lobby = new Schema({
   date: {
@@ -333,6 +339,13 @@ const Lobby = new Schema({
     type: String,
     default: null,
   },
+  teamCreation: {
+    type: String,
+    enum: [
+      TEAM_CREATION_BALANCED,
+      TEAM_CREATION_RANDOM
+    ],
+  }
 });
 
 Lobby.methods = {
@@ -717,20 +730,32 @@ Lobby.methods = {
 
     if (this.isRacing()) {
       const trackOption = trackOptions.find((t) => t.key === this.trackOption);
-      title += ` (${trackOption.name})`;
+      title += ` [${trackOption.name}]`;
     } else if (this.isBattle()) {
       if (this.isDrafting()) {
-        title += ' (Arena Drafting)';
+        title += ' [Arena Drafting]';
       } else if (this.isPools()) {
-        title += ' (Arena Pools)';
+        title += ' [Arena Pools]';
       } else if (this.isIronMan()) {
-        title += ' (Iron Man)';
+        title += ' [Iron Man]';
       } else {
-        title += ' (Full RNG Arenas)';
+        title += ' [Full RNG Arenas]';
       }
     }
 
+    const lockIndicator = this.getLockIndicator();
+    if (lockIndicator) {
+      title += ` [${lockIndicator}]`
+    }
+
     return title;
+  },
+  getLockIndicator() {
+    if (this.consoles.length === 1) {
+      return this.consoles[0];
+    }
+
+    return null;
   },
   getIcon() {
     if (this.isTournament()) {
