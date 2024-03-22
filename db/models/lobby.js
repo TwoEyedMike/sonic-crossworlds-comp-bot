@@ -658,6 +658,7 @@ Lobby.methods = {
   },
   getTitle() {
     let title;
+
     if (this.ranked) {
       title = 'Ranked ';
     } else {
@@ -743,14 +744,15 @@ Lobby.methods = {
       }
     }
 
-    const lockIndicator = this.getLockIndicator();
-    if (lockIndicator) {
-      title += ` [${lockIndicator}]`
+    const consoleLockIndicator = this.getConsoleLockIndicator();
+
+    if (consoleLockIndicator) {
+      title += ` [${consoleLockIndicator}]`
     }
 
     return title;
   },
-  getLockIndicator() {
+  getConsoleLockIndicator() {
     if (this.consoles.length === 1) {
       return this.consoles[0];
     }
