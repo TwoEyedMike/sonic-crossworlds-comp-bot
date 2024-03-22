@@ -292,7 +292,7 @@ async function getEmbed(doc, players, tracks, roomChannel) {
       });
 
       if (doc.ranked && (!doc.anonymous || doc.started)) {
-        playersText += `**Team ${i + 1} (Rating: ${Math.floor(mmrSum / team.length)})**\n`;
+        playersText += `**Team ${i + 1} [Rating: ${Math.floor(mmrSum / team.length)}]**\n`;
       } else {
         playersText += `**Team ${i + 1}**\n`;
       }
@@ -359,7 +359,7 @@ async function getEmbed(doc, players, tracks, roomChannel) {
   if (roomChannel) {
     roomField = {
       name: ':key: Room',
-      value: `${roomChannel.toString()}${doc.privateChannel ? ' (read-only)' : ''}`,
+      value: `${roomChannel.toString()}${doc.privateChannel ? ' [read-only]' : ''}`,
       inline: true,
     };
   }
@@ -628,7 +628,7 @@ async function getPlayersText(doc) {
       }
 
       if (doc.ranked) {
-        playersText += `${teamNumber}. (Rating: ${Math.floor(mmrSum / team.length)})\n`;
+        playersText += `${teamNumber}. [Rating: ${Math.floor(mmrSum / team.length)}]\n`;
       } else {
         playersText += `${teamNumber}. `;
       }
