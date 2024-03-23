@@ -258,7 +258,7 @@ async function getEmbed(doc, players, tracks, roomChannel) {
       playersOut.push(tag);
 
       if (doc.ranked) {
-        psns.push(`${ranked_name} [${rank}]`);
+        psns.push(`[${rank}] ${ranked_name}`);
       } else {
         psns.push(ranked_name);
       }
@@ -343,7 +343,7 @@ async function getEmbed(doc, players, tracks, roomChannel) {
   };
 
   const psnsField = {
-    name: `:credit_card: Ranked Names${doc.ranked ? ' & Ranks' : ''}`,
+    name: `:credit_card: Ranked Information`,
     value: psnAndRanks,
     inline: true,
   };
@@ -427,7 +427,7 @@ async function getEmbed(doc, players, tracks, roomChannel) {
 
   if (settings.length > 0) {
     settingsField = {
-      name: ':joystick: Lobby Settings',
+      name: ':video_game: Lobby Settings',
       value: settings.join('\n'),
       inline: true,
     };
@@ -2059,7 +2059,7 @@ module.exports = {
                 if (roomChannel) {
                   const requiredReactions = Math.ceil((doc.players.length - 1) * 0.75);
 
-                  roomChannel.info(`I need reactions from ${requiredReactions} other people in the lobby to confirm.`, doc.players).then((voteMessage) => {
+                  roomChannel.info(`I need reactions from ${requiredReactions} other people to confirm ending the lobby.`, doc.players).then((voteMessage) => {
                     voteMessage.react('✅');
 
                     // eslint-disable-next-line no-shadow
@@ -2165,6 +2165,70 @@ module.exports = {
         // eslint-disable-next-line no-use-before-define
         getRanks().then(() => {
           message.channel.success('All ranks have been updated.');
+        });
+        break;
+      case 'reroll_arenas':
+      case 'reroll_tracks':
+         // eslint-disable-next-line consistent-return
+        findLobby(lobbyID, message.member.isStaff(), message, (doc) => {
+          if (!doc.started) {
+            return message.channel.warn(`You cannot reroll ${doc.isRacing() ? 'tracks' : 'arenas'} for a lobby that has not been started.`);
+          }
+
+          if (doc.canRerollTracks()) {
+            Room.findOne({ lobby: doc.id }).then((room) => {
+              if (!room) {
+                return;
+              }
+
+              // eslint-disable-next-line max-len
+              const roomChannel = message.guild.channels.cache.find((c) => c.name.toLowerCase() === getRoomName(room.number).toLowerCase());
+              if (roomChannel) {
+                const requiredReactions = doc.players.length - 1;
+
+                roomChannel.info(`I need reactions from ${requiredReactions} other people to confirm rerolling the ${doc.isRacing() ? 'tracks' : 'arenas'} for this lobby.`, doc.players).then((voteMessage) => {
+                  voteMessage.react('✅');
+
+                  // eslint-disable-next-line no-shadow
+                  const filter = (r, u) => ['✅'].includes(r.emoji.name) && doc.players.includes(u.id) && u.id !== message.author.id;
+                  voteMessage.awaitReactions(filter, {
+                    maxUsers: requiredReactions,
+                    time: 60000,
+                    errors: ['time'],
+                    // eslint-disable-next-line consistent-return
+                  }).then(() => {
+                    if (voteMessage.deleted) {
+                      return roomChannel.error('Command cancelled. Stop abusing staff powers.');
+                    }
+
+                    generateTracks(doc).then((tracks) => {
+                      const embed = {
+                        color: doc.getColor(),
+                        title: `New ${doc.isRacing() ? 'Track' : 'Arena'} List`,
+                        fields: [
+                          {
+                            name: doc.isRacing() ? 'Tracks' : 'Arenas',
+                            value: tracks.join('\n'),
+                            inline: true,
+                          },
+                        ],
+                      };
+
+                      roomChannel.send({ embed }).then((m) => {
+                        m.pin();
+
+                        roomChannel.success(`${doc.isRacing() ? 'Tracks' : 'Arenas'} have been rerolled successfully.`);
+                      });
+                    });
+                  }).catch(() => {
+                    voteMessage.channel.error('Command cancelled.');
+                  });
+                });
+              }
+            });
+          } else {
+            return message.channel.warn(`You cannot reroll ${doc.isRacing() ? 'tracks' : 'arenas'} for this lobby.`);
+          }
         });
         break;
       case 'force_add':

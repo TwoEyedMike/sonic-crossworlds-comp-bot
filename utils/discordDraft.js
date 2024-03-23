@@ -104,10 +104,7 @@ async function getTrackSelection(channel, user, excludedTracks, phase, draftOpti
       }
     });
 
-    console.log(trackOptions.map((t) => t.key));
-    
     const remainingTracksList = trackOptions.filter((t) => t.valid).map((t) => t.key);
-    console.log(remainingTracksList);
 
     if (remainingTime > 0) {
       track = await channel.awaitMenuChoice(`Please select a track. You have ${remainingTime} second(s) left.`, user.id, trackOptions, 1, null, remainingTime);

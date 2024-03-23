@@ -1300,6 +1300,9 @@ Lobby.methods = {
       }
     });
   },
+  canRerollTracks() {
+    return !(this.isTournament() || this.isIronMan() || this.trackOption === TRACK_OPTION_DRAFT || this.isBattle());
+  }
 };
 
 module.exports.Lobby = model('lobby', Lobby);
