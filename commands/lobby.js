@@ -1069,29 +1069,29 @@ function startLobby(docId) {
           findRoomChannel(doc, room.number).then(async (roomChannel) => {
             // remove all players from their other lobbies
             for (p in doc.players) {
-                const playerLobbies = await Lobby.find({ 
-                    _id: { $ne: doc._id }, 
-                    players: doc.players[p]
-                });
+              const playerLobbies = await Lobby.find({ 
+                _id: { $ne: doc._id }, 
+                players: doc.players[p]
+              });
 
-                for (l in playerLobbies) {
-                    let lobbyMessage = await client.guilds.cache
-                        .get(playerLobbies[l].guild).channels.cache
-                        .get(playerLobbies[l].channel).messages
-                        .fetch(playerLobbies[l].message);
+              for (l in playerLobbies) {
+                let lobbyMessage = await client.guilds.cache
+                  .get(playerLobbies[l].guild).channels.cache
+                  .get(playerLobbies[l].channel).messages
+                  .fetch(playerLobbies[l].message);
 
-                    let reaction = {
-                        message: lobbyMessage,
-                        users: null,
-                    };
+                let reaction = {
+                  message: lobbyMessage,
+                  users: null,
+                };
 
-                    let user = client.users.cache.get(doc.players[p]);
-                    if (!user) {
-                        continue;
-                    }
-
-                    await mogi(reaction, user, true);
+                let user = client.users.cache.get(doc.players[p]);
+                if (!user) {
+                  continue;
                 }
+
+                await mogi(reaction, user, true);
+              }
             }
 
             if (doc.privateChannel) {
@@ -1169,7 +1169,7 @@ function startLobby(docId) {
                   inline: true,
                 },
                 {
-                  name: 'Tracks',
+                  name: doc.isRacing() ? 'Tracks' : 'Arenas',
                   value: tracks,
                   inline: true,
                 },
