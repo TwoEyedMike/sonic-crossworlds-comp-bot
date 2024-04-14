@@ -18,6 +18,7 @@ const { Player } = require('./db/models/player');
 const { SignupsChannel } = require('./db/models/signups_channel');
 const alarms = require('./alarms');
 const getConfigValue = require('./utils/getConfigValue');
+const messageContainsDiscordInviteLink = require('./utils/messageContainsDiscordInviteLink');
 const db = require('./db/models');
 const { parsers, parse, checkRepetitions } = require('./utils/signups_parsers');
 const { flags } = require('./db/flags');
@@ -324,12 +325,25 @@ function checkPings(message) {
   }
 }
 
+function checkDiscordInvite(message) {
+  if (messageContainsDiscordInviteLink(message.content)) {
+    if (!message.member.isStaff()) {
+      message.delete();
+      message.member.createDM().then((dm) => {
+        dm.send('Posting discord invite links is not allowed.');
+      });
+      message.guild.log(`A message containing a discord invite link posted by <@!${message.author.id}> was deleted. \`\`\`${message.content}\`\`\``);
+    }
+  }
+}
+
 client.on('message', (message) => {
   if (!message || message.author.bot) {
     return;
   }
 
   if (message.channel.type === 'text') {
+    checkDiscordInvite(message);
     checkPings(message);
     reactOnSignUp(message).then();
 
@@ -481,6 +495,7 @@ client.on('messageUpdate', (oldMessage, newMessage) => {
   }
 
   if (newMessage && newMessage.channel.type === 'text') {
+    checkDiscordInvite(newMessage);
     reactOnSignUp(newMessage, oldMessage).then();
 
     // eslint-disable-next-line max-len
