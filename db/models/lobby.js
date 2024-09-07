@@ -25,19 +25,6 @@ const poolItemless3 = require('../pools/itemless_3');
 const poolBattle3 = require('../pools/battle_3');
 const poolBattle4 = require('../pools/battle_4');
 const poolBattle5 = require('../pools/battle_5');
-const poolBlueFire = require('../pools/blue_fire');
-const poolBonus = require('../pools/bonus');
-const poolCnk = require('../pools/cnk');
-const poolCtr = require('../pools/ctr');
-const poolDayTime = require('../pools/day_time');
-const poolLong = require('../pools/long');
-const poolNature = require('../pools/nature');
-const poolNightTime = require('../pools/night_time');
-const poolPolswid = require('../pools/polswid');
-const poolRoad = require('../pools/road');
-const poolSacredFire = require('../pools/sacred_fire');
-const poolSmall = require('../pools/small');
-const poolStatic = require('../pools/static');
 
 const engineKeys = engineStyles.map((e) => e.key);
 const regionKeys = regions.map((r) => r.key);
@@ -111,21 +98,6 @@ const LEADERBOARDS = {
 const TRACK_OPTION_RNG = 'random';
 const TRACK_OPTION_POOLS = 'pools';
 const TRACK_OPTION_DRAFT = 'draft';
-const TRACK_OPTION_BONUS = 'bonus';
-const TRACK_OPTION_BLUE_FIRE = 'blue_fire';
-const TRACK_OPTION_CNK = 'cnk';
-const TRACK_OPTION_CTR = 'ctr';
-const TRACK_OPTION_DAY_TIME = 'day_time';
-const TRACK_OPTION_LONG = 'long';
-const TRACK_OPTION_NIGHT_TIME = 'night_time';
-const TRACK_OPTION_NATURE = 'nature';
-const TRACK_OPTION_POLSWID = 'polswid';
-const TRACK_OPTION_ROAD = 'road';
-const TRACK_OPTION_SACRED_FIRE = 'sacred_fire';
-const TRACK_OPTION_SMALL = 'small';
-const TRACK_OPTION_STATIC = 'static';
-const TRACK_OPTION_POPULAR = 'popular';
-const TRACK_OPTION_UNPOPULAR = 'unpopular';
 const TRACK_DRAGON_MINES = 'Dragon Mines';
 const TRACK_HYPER_SPACEWAY = 'Hyper Spaceway';
 const TRACK_RETRO_STADIUM = 'Retro Stadium';
@@ -172,21 +144,6 @@ module.exports.LEADERBOARD_URLS = LEADERBOARD_URLS;
 module.exports.TRACK_OPTION_RNG = TRACK_OPTION_RNG;
 module.exports.TRACK_OPTION_POOLS = TRACK_OPTION_POOLS;
 module.exports.TRACK_OPTION_DRAFT = TRACK_OPTION_DRAFT;
-module.exports.TRACK_OPTION_BONUS = TRACK_OPTION_BONUS;
-module.exports.TRACK_OPTION_BLUE_FIRE = TRACK_OPTION_BLUE_FIRE;
-module.exports.TRACK_OPTION_CNK = TRACK_OPTION_CNK;
-module.exports.TRACK_OPTION_CTR = TRACK_OPTION_CTR;
-module.exports.TRACK_OPTION_DAY_TIME = TRACK_OPTION_DAY_TIME;
-module.exports.TRACK_OPTION_LONG = TRACK_OPTION_LONG;
-module.exports.TRACK_OPTION_NIGHT_TIME = TRACK_OPTION_NIGHT_TIME;
-module.exports.TRACK_OPTION_NATURE = TRACK_OPTION_NATURE;
-module.exports.TRACK_OPTION_POLSWID = TRACK_OPTION_POLSWID;
-module.exports.TRACK_OPTION_ROAD = TRACK_OPTION_ROAD;
-module.exports.TRACK_OPTION_SACRED_FIRE = TRACK_OPTION_SACRED_FIRE;
-module.exports.TRACK_OPTION_SMALL = TRACK_OPTION_SMALL;
-module.exports.TRACK_OPTION_STATIC = TRACK_OPTION_STATIC;
-module.exports.TRACK_OPTION_POPULAR = TRACK_OPTION_POPULAR;
-module.exports.TRACK_OPTION_UNPOPULAR = TRACK_OPTION_UNPOPULAR;
 module.exports.LOBBY_MODE_STANDARD = LOBBY_MODE_STANDARD;
 module.exports.LOBBY_MODE_TOURNAMENT = LOBBY_MODE_TOURNAMENT;
 module.exports.CUSTOM_OPTION_MODE = CUSTOM_OPTION_MODE;
@@ -454,7 +411,7 @@ Lobby.methods = {
       }
     }
 
-    for (const i = 0; i < this.getSoloPlayers().length; i += 1) {
+    for (let i = 0; i < this.getSoloPlayers().length; i += 1) {
       if (availableTeamSizes[0] >= 1) {
         availableTeamSizes[0] -= 1;
       } else {
@@ -478,7 +435,7 @@ Lobby.methods = {
      * If all the players in the lobby are in the solo queue then
      * we don't have a lobby with incomplete teams
      */
-    if (this.getSoloPlayers().length == this.players.length) {
+    if (this.getSoloPlayers().length === this.players.length) {
       return false;
     }
 
@@ -994,31 +951,6 @@ Lobby.methods = {
       availableTrackOptions.push(TRACK_OPTION_DRAFT);
     }
 
-    // Themed tracks are available for race modes
-    if (this.isRacing()) {
-      // Bonus only has 8 tracks
-      if (this.getDefaultTrackCount() <= 8) {
-        availableTrackOptions.push(TRACK_OPTION_BONUS);
-      }
-
-      availableTrackOptions.push(...[
-        TRACK_OPTION_BLUE_FIRE,
-        TRACK_OPTION_CNK,
-        TRACK_OPTION_CTR,
-        TRACK_OPTION_DAY_TIME,
-        TRACK_OPTION_LONG,
-        TRACK_OPTION_NATURE,
-        TRACK_OPTION_NIGHT_TIME,
-        TRACK_OPTION_POLSWID,
-        TRACK_OPTION_ROAD,
-        TRACK_OPTION_SACRED_FIRE,
-        TRACK_OPTION_SMALL,
-        TRACK_OPTION_STATIC,
-        TRACK_OPTION_POPULAR,
-        TRACK_OPTION_UNPOPULAR
-      ]);
-    }
-
     return availableTrackOptions;
   },
   getBannedTracks() {
@@ -1026,10 +958,6 @@ Lobby.methods = {
 
     if (this.regions.length !== 1) {
       bannedTracks.push(TRACK_HYPER_SPACEWAY);
-    }
-
-    if (this.isItems() && ![0, 3].includes(this.ruleset)) {
-      bannedTracks.push(TRACK_SPYRO_CIRCUIT);
     }
 
     if (this.isItemless()) {

@@ -1,13 +1,4 @@
-const { 
-  TRACK_OPTION_POPULAR, 
-  TRACK_OPTION_UNPOPULAR
-} = require('../db/models/lobby');
-
 const shuffleArray = require('./shuffleArray');
-const { 
-  getPopularTracks, 
-  getUnpopularTracks
-} = require('../utils/getPopularTracks');
 
 /**
  * Removes banned tracks from the track pool
@@ -28,16 +19,8 @@ function removeBannedTracks(pool, doc) {
 async function generateTracks(doc) {
   let pools = doc.getTrackPools();
 
-  if (![TRACK_OPTION_POPULAR, TRACK_OPTION_UNPOPULAR].includes(doc.trackOption) && pools.length <= 0) {
+  if (pools.length <= 0) {
     return ['-'];
-  }
-
-  if (doc.trackOption === TRACK_OPTION_POPULAR) {
-    pools = [await getPopularTracks(12)];
-  }
-
-  if (doc.trackOption === TRACK_OPTION_UNPOPULAR) {
-    pools = [await getUnpopularTracks(12)];
   }
 
   let maps = [];
