@@ -100,25 +100,18 @@ function getEngineStyleIcon(engineStyleKey) {
  * @return Object
  */
 function getEmbed(member, color, fields, url) {
-  let avatarUrl;
-  if (member.user.avatar) {
-    avatarUrl = `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png`;
-  } else {
-    avatarUrl = member.user.defaultAvatarURL;
-  }
-
   const embed = {
     color,
     timestamp: new Date(),
     thumbnail: {
-      url: avatarUrl,
+      url: member.user.getAvatarUrl(),
     },
     footer: {
       text: `!profile help  •  id: ${member.user.id}`,
     },
     author: {
       name: `${member.user.getDisplayName()}'s profile${member.user.bot ? ' (Bot)' : ''}`,
-      icon_url: avatarUrl,
+      icon_url: member.user.getAvatarUrl(),
     },
     description: 'Check out the PSN profile by using the `!psn` command.',
     fields,

@@ -32,6 +32,7 @@ module.exports = {
     tournament_lobbies_category: 'Tournament Lobbies',
     matchmaking_category: 'Matchmaking',
     matchmaking_guide_channel: 'matchmaking-guide',
+    matchmaking_bans_channel: 'matchmaking-bans',
     ranked_rules_channel: 'ranked-rules',
     ranked_lobbies_channel: 'ranked-lobbies',
     unranked_lobbies_channel: 'unranked-lobbies',

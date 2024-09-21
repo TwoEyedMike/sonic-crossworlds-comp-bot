@@ -22,5 +22,6 @@ require('./text_channel/offer_csv_download');
 require('./text_channel/parse_signups');
 require('./text_channel/send_pageable_content');
 require('./text_channel/send_without_ping');
+require('./user/get_avatar_url');
 require('./user/has_new_username');
 require('./user/get_display_name');

@@ -1090,50 +1090,7 @@ Lobby.methods = {
           pools = [pools.flat()];
         }
       } else {
-        switch (this.trackOption) {
-          case TRACK_OPTION_BLUE_FIRE:
-            pools = poolBlueFire;
-            break;
-          case TRACK_OPTION_BONUS:
-            pools = poolBonus;
-            break;
-          case TRACK_OPTION_CNK:
-            pools = poolCnk;
-            break;
-          case TRACK_OPTION_CTR:
-            pools = poolCtr;
-            break;
-          case TRACK_OPTION_DAY_TIME:
-            pools = poolDayTime;
-            break;
-          case TRACK_OPTION_LONG:
-            pools = poolLong;
-            break;
-          case TRACK_OPTION_NATURE:
-            pools = poolNature;
-            break;
-          case TRACK_OPTION_NIGHT_TIME:
-            pools = poolNightTime;
-            break;
-          case TRACK_OPTION_POLSWID:
-            pools = poolPolswid;
-            break;
-          case TRACK_OPTION_ROAD:
-            pools = poolRoad;
-            break;
-          case TRACK_OPTION_SACRED_FIRE:
-            pools = poolSacredFire;
-            break;
-          case TRACK_OPTION_SMALL:
-            pools = poolSmall;
-            break;
-          case TRACK_OPTION_STATIC:
-            pools = poolStatic;
-            break;
-          default:
-            pools = poolItems4;
-            break;
-        }
+        pools = poolItems4;
       }
     } else if (this.isBattle()) {
       if (this.is1v1()) {

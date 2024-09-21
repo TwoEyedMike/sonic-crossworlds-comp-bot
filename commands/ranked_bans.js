@@ -102,6 +102,29 @@ module.exports = {
 
           m.delete();
           message.channel.success(output);
+
+          const ban_channel = message.guild.channels.cache.find((c) => c.name === config.channels.matchmaking_bans_channel);
+          if (ban_channel) {
+            const embed = {
+              'timestamp': new Date(),
+              'color': 13375774,
+              'author': {
+                'name': 'Ranked Ban',
+                'icon_url': 'https://i.imgur.com/7qaqL00.png'
+              },
+              'thumbnail': {
+                'url': member.getAvatarUrl()
+              },
+              'fields': [
+                {
+                  'name': 'Details',
+                  'value': `**Player**: <@!${member.id}>\n**Duration**: ${duration.humanize()}\n**Reason**: ${reason}`
+                }
+              ]
+            }
+
+            ban_channel.send({ embed });
+          }
         });
 
         member.createDM().then((channel) => {
