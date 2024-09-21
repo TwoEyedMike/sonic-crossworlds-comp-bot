@@ -105,6 +105,11 @@ module.exports = {
 
           const ban_channel = message.guild.channels.cache.find((c) => c.name === config.channels.matchmaking_bans_channel);
           if (ban_channel) {
+            let readableDuration = 'Forever';
+            if (duration) {
+              readableDuration = duration.humanize();
+            }
+
             const embed = {
               'timestamp': new Date(),
               'color': 13375774,
@@ -118,7 +123,7 @@ module.exports = {
               'fields': [
                 {
                   'name': 'Details',
-                  'value': `**Player**: <@!${member.id}>\n**Duration**: ${duration.humanize()}\n**Reason**: ${reason}`
+                  'value': `**Player**: <@!${member.id}>\n**Duration**: ${readableDuration}\n**Reason**: ${reason}`
                 }
               ]
             }
