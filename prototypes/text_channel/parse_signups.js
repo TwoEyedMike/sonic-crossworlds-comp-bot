@@ -1,5 +1,6 @@
 const { TextChannel } = require('discord.js');
 const { parse, parsers } = require('../../utils/signups_parsers');
+const { Player } = require("../../db/models/player");
 
 /**
  * Parses signups of a channel
@@ -10,41 +11,47 @@ const { parse, parsers } = require('../../utils/signups_parsers');
 TextChannel.prototype.parseSignups = function (doc) {
   const parser = parsers[doc.parser];
 
-  const SEPARATOR = ',';
+  const separator = ',';
   let firstRow;
-  const out = [];
+  const output = [];
 
-  return this.fetchMessages(500).then((messages) => {
+  return this.fetchMessages(500).then(async (messages) => {
     let count = 0;
     let hosts = 0;
 
     const sortedMessages = messages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
-    sortedMessages.forEach((m, index) => {
-      if (index === 0 || m.type === 'PINS_ADD' || m.author.bot) {
-        return;
+    for (const m of sortedMessages) {
+      if (m.type === 'PINS_ADD' || m.author.bot) {
+        continue;
       }
 
       count += 1;
 
       const data = parse(m, parser.fields);
 
-      if (data.host) hosts += 1;
+      if (data.host) {
+        hosts += 1;
+      }
 
       data.valid = !data.errors.length;
       delete data.errors;
 
       if (!firstRow) {
-        firstRow = ['#', ...Object.keys(data)];
+        /* The ranked name is added on top of every signups parser */
+        firstRow = ['#', ...Object.keys(data), 'rankedName'];
       }
 
-      const row = [count, ...Object.values(data)];
-      out.push(row.join(SEPARATOR));
+      const player = await Player.findOne({ discordId: data.authorId });
+      const rankedName = player && player.rankedName ? player.rankedName : '-';
+
+      const row = [count, ...Object.values(data), rankedName];
+      output.push(row.join(separator));
 
       data.createdAt = m.createdTimestamp;
-    });
+    }
 
-    out.unshift(firstRow);
+    output.unshift(firstRow);
 
-    return { count, hosts, rows: out };
+    return { count, hosts, rows: output };
   });
 };

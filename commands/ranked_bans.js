@@ -2,6 +2,7 @@ const moment = require('moment');
 const config = require('../config');
 const { Lobby } = require('../db/models/lobby');
 const { RankedBan } = require('../db/models/ranked_ban');
+const {Player} = require("../db/models/player");
 
 module.exports = {
   name: 'ranked_bans',
@@ -110,25 +111,32 @@ module.exports = {
               readableDuration = duration.humanize();
             }
 
-            const embed = {
-              'timestamp': new Date(),
-              'color': 13375774,
-              'author': {
-                'name': 'Ranked Ban',
-                'icon_url': 'https://i.imgur.com/7qaqL00.png'
-              },
-              'thumbnail': {
-                'url': member.getAvatarUrl()
-              },
-              'fields': [
-                {
-                  'name': 'Details',
-                  'value': `**Player**: <@!${member.id}>\n**Duration**: ${readableDuration}\n**Reason**: ${reason}`
-                }
-              ]
-            }
+            Player.findOne({ discordId: member.id }).then((player) => {
+              let rankedName = '-';
+              if (player && player.rankedName) {
+                rankedName = player.rankedName;
+              }
 
-            ban_channel.send({ embed });
+              const embed = {
+                'timestamp': new Date(),
+                'color': 13375774,
+                'author': {
+                  'name': 'Ranked Ban',
+                  'icon_url': 'https://i.imgur.com/7qaqL00.png'
+                },
+                'thumbnail': {
+                  'url': member.getAvatarUrl()
+                },
+                'fields': [
+                  {
+                    'name': 'Details',
+                    'value': `**Player**: <@!${member.id}>\n**Ranked Name**: ${rankedName}\n**Duration**: ${readableDuration}\n**Reason**: ${reason}`
+                  }
+                ]
+              }
+
+              ban_channel.send({ embed });
+            });
           }
         });
 
