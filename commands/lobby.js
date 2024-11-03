@@ -3280,8 +3280,18 @@ async function getRanks(options) {
 
           ranks[name][key] = {
             rank: p.rating,
+            maxRank: p.maxRating,
+            minRank: p.minRating,
             position: p.ranking,
+            maxPosition: p.maxRanking,
+            minPosition: p.minRanking,
+            firstActivity: (p.firstActivityDate / 1000),
             lastActivity: (p.lastActivityDate / 1000),
+            wins: p.wins,
+            losses: p.losses,
+            playedMatches: p.playedMatchCount,
+            maxRankGain: p.maxRatingGain,
+            maxRankLoss: p.maxRatingLoss,
           };
         });
       }
