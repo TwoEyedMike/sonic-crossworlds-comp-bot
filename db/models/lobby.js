@@ -67,11 +67,11 @@ const SURVIVAL_STYLES = [
 ];
 
 const LEADERBOARD_URLS = {
-  'solos': '8-jFwF',
-  'itemless': 'Yg67aT',
-  'teams': '9ur6s5',
-  'insta_teams': '3NM8MD',
-  'battle': '2pgqJQ',
+  'solos': 'J4pUNM',
+  'itemless': 'flviu1',
+  'teams': 'AkswcV',
+  'insta_teams': 'APhIyj',
+  'battle': 'y0AeQ9',
 };
 
 const LEADERBOARDS = {
