@@ -22,8 +22,8 @@ function getEmbed(rankedName, gameModeName, rank) {
   const firstActivity = new Date(rank.firstActivity * 1000);
   const lastActivity = new Date(rank.lastActivity * 1000);
 
-  const averageMMRGain = ((rank.rank - 1200) / rank.playedMatches).toFixed(1);
-  const winQuota = (rank.wins / rank.playedMatches * 100).toFixed(2);
+  const averageMMRChange = ((rank.rank - 1200) / rank.playedMatches).toFixed(1);
+  const winRatio = (rank.wins / rank.playedMatches * 100).toFixed(2);
 
   return {
     "author": {
@@ -39,7 +39,7 @@ function getEmbed(rankedName, gameModeName, rank) {
       },
       {
         "name": ":race_car: **Activity**",
-        "value": `**First Match**: ${firstActivity.toLocaleString()}\n**Latest Match**: ${lastActivity.toLocaleString()}`,
+        "value": `**First Lobby**: ${firstActivity.toLocaleString()}\n**Latest Lobby**: ${lastActivity.toLocaleString()}`,
         "inline": true
       },
       {
@@ -48,12 +48,12 @@ function getEmbed(rankedName, gameModeName, rank) {
       },
       {
         "name": ":chart_with_upwards_trend: **MMR**",
-        "value": `**Current MMR**: ${getRankingRating(rank.rank)}\n**Highest MMR**: ${getRankingRating(rank.maxRank)}\n**Lowest MMR**: ${getRankingRating(rank.minRank)}\n**Highest MMR Gain**: ${rank.maxRankGain}\n**Highest MMR Loss**: ${rank.maxRankLoss}\n**Average MMR Gain**: ${averageMMRGain}`,
+        "value": `**Current MMR**: ${getRankingRating(rank.rank)}\n**Highest MMR**: ${getRankingRating(rank.maxRank)}\n**Lowest MMR**: ${getRankingRating(rank.minRank)}\n**Highest MMR Gain**: ${rank.maxRankGain}\n**Highest MMR Loss**: ${rank.maxRankLoss}\n**Average MMR Change**: ${averageMMRChange}`,
         "inline": true
       },
       {
         "name": ":video_game: **Games**",
-        "value": `**Races played**: ${rank.playedMatches}\n**Wins**: ${rank.wins}\n**Losses**: ${rank.losses}\n**Win quota**: ${winQuota}%`,
+        "value": `**Lobbies played**: ${rank.playedMatches}\n**Wins**: ${rank.wins}\n**Losses**: ${rank.losses}\n**Win ratio**: ${winRatio}%`,
         "inline": true
       }
     ]
