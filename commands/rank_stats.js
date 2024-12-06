@@ -5,6 +5,7 @@ const {
   RACE_ITEMS_DUOS,
   RACE_ITEMLESS_FFA,
   BATTLE_FFA,
+  INSTA_DUOS,
 } = require("../db/models/lobby");
 const { Rank } = require("../db/models/rank");
 
@@ -104,11 +105,14 @@ module.exports = {
       {
         key: RACE_ITEMLESS_FFA,
         name: 'Itemless Racing',
-        description: null,
       },
       {
         key: BATTLE_FFA,
         name: 'Battle Mode',
+      },
+      {
+        key: INSTA_DUOS,
+        name: 'Insta Teams',
       }
     ];
 

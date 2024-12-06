@@ -13,6 +13,7 @@ const {
   RACE_ITEMS_DUOS,
   RACE_ITEMLESS_FFA,
   BATTLE_FFA,
+  INSTA_DUOS,
 } = require('../db/models/lobby');
 
 /**
@@ -329,6 +330,7 @@ module.exports = {
                   '**Item Racing Teams**: -',
                   '**Itemless Racing**: -',
                   '**Battle Mode**: -',
+                  '**Insta Teams**: -',
                   '**Super Score**: -',
                 ];
               } else {
@@ -336,12 +338,14 @@ module.exports = {
                 const itemsTeamsRanking = getRankingPosition(rank, RACE_ITEMS_DUOS);
                 const itemlessRanking = getRankingPosition(rank, RACE_ITEMLESS_FFA);
                 const battleModeRanking = getRankingPosition(rank, BATTLE_FFA);
-  
+                const instaTeamsRanking = getRankingPosition(rank, INSTA_DUOS);
+
                 playerRanks = [
                   `**Item Racing Solos**: ${itemsSolosRanking !== '-' ? `#${itemsSolosRanking} - ${getRankingRating(rank, RACE_ITEMS_FFA)}` : '-'}`,
                   `**Item Racing Teams**: ${itemsTeamsRanking !== '-' ? `#${itemsTeamsRanking} - ${getRankingRating(rank, RACE_ITEMS_DUOS)}` : '-'}`,
                   `**Itemless Racing**: ${itemlessRanking !== '-' ? `#${itemlessRanking} - ${getRankingRating(rank, RACE_ITEMLESS_FFA)}` : '-'}`,
                   `**Battle Mode**: ${battleModeRanking !== '-' ? `#${battleModeRanking} - ${getRankingRating(rank, BATTLE_FFA)}` : '-'}`,
+                  `**Insta Teams**: ${instaTeamsRanking !== '-' ? `#${instaTeamsRanking} - ${getRankingRating(rank, INSTA_DUOS)}` : '-'}`,
                   `**Super Score**: ${superScoreEntry ? `#${superScoreEntry.rank} - ${superScoreEntry.superScore}` : '-'}`,
                 ];
               }

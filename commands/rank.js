@@ -8,6 +8,7 @@ const {
   RACE_ITEMS_DUOS,
   RACE_ITEMLESS_FFA,
   BATTLE_FFA,
+  INSTA_DUOS,
 } = require('../db/models/lobby');
 
 const ranks = {
@@ -15,6 +16,7 @@ const ranks = {
   [RACE_ITEMS_DUOS]: 'Item Teams Racing',
   [RACE_ITEMLESS_FFA]: 'Itemless Racing',
   [BATTLE_FFA]: 'Battle Mode',
+  [INSTA_DUOS]: 'Insta Teams',
 };
 
 function sendMessage(message, rank) {
@@ -40,13 +42,6 @@ function sendMessage(message, rank) {
     fields.push({
       name: 'Super Score',
       value: `${superScoreEntry ? `#${superScoreEntry.rank} - ${superScoreEntry.superScore}` : '-'}`,
-      inline: true,
-    });
-
-    // add spacer so that the layout doesn't get fucked
-    fields.push({
-      name: '\u200B',
-      value: '\u200B',
       inline: true,
     });
 
